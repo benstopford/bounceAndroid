@@ -1,0 +1,29 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    
+    <SurfaceView 
+        android:layout_width="fill_parent"
+        android:layout_height="300dp"
+        android:id="@+id/camera_preview"
+    />
+    
+     <Button
+        android:id="@+id/btnCapture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="take picture"
+        android:onClick="onTakePictureClick"
+        android:layout_below="@id/camera_preview"
+	 />
+     
+     <ImageView 
+         android:layout_width="fill_parent"
+         android:layout_height="200dp"
+         android:layout_below="@id/btnCapture"
+         android:id="@+id/taken_picture"
+         />
+         
+    
+</RelativeLayout>

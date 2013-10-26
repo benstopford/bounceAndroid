@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.helpers.DataHolder;
 import com.quickblox.core.QBCallback;
 import com.quickblox.core.result.Result;
 import com.quickblox.module.users.QBUsers;
@@ -58,6 +59,8 @@ public class LoginActivity extends Activity implements QBCallback {
             intent.putExtra("myId", user.getId());
             intent.putExtra("myUsername", user.getLogin());
             intent.putExtra("myPassword", user.getPassword());
+            
+            DataHolder.getDataHolder().setSignInUser(user); 
 
             startActivity(intent);
             Toast.makeText(this, "You've been successfully logged in application",

@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.helpers.DataHolder;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.quickblox.core.QBCallback;
 import com.quickblox.core.QBCallbackImpl;
@@ -40,6 +41,8 @@ public class BouncesActivity extends Activity {
 	    user.setId(extras.getInt("myId"));
 	    user.setLogin(extras.getString("myUsername"));
 	    user.setPassword(extras.getString("myPassword")); 
+	    
+	    DataHolder.getDataHolder().loadContacts(); 
 	    
 	    textView.setText(user.toString());
 	    
@@ -91,6 +94,7 @@ public class BouncesActivity extends Activity {
 			    });
 			}
 		}); 
+	    
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -118,6 +122,12 @@ public class BouncesActivity extends Activity {
 	    }.execute(null,null,null); 
 	}
 	
+	
+	public void onBounceitClick(View v)
+	{
+		Intent intent = new Intent(this, BounceitActivity.class);        
+        startActivity(intent);
+	}
 	
 	    	
 	public void onContactsClick(View v)

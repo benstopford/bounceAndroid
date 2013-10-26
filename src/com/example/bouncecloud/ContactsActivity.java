@@ -1,6 +1,6 @@
 package com.example.bouncecloud;
 
-import java.util.ArrayList;
+import java.util.concurrent.RunnableScheduledFuture;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -9,25 +9,28 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.helpers.ContactListAdapter;
+import com.example.helpers.DataHolder;
+import com.example.interfaces.ContactListListener;
 import com.quickblox.core.QBCallback;
 import com.quickblox.core.result.Result;
-import com.quickblox.internal.module.custom.request.QBCustomObjectRequestBuilder;
-import com.quickblox.module.auth.QBAuth;
-import com.quickblox.module.custom.QBCustomObjects;
-import com.quickblox.module.custom.model.QBCustomObject;
-import com.quickblox.module.custom.result.QBCustomObjectLimitedResult;
 import com.quickblox.module.users.QBUsers;
 import com.quickblox.module.users.model.QBUser;
 import com.quickblox.module.users.result.QBUserResult;
 
-public class ContactsActivity extends Activity implements QBCallback {
+public class ContactsActivity extends Activity implements AdapterView.OnItemClickListener, ContactListListener {
 	
+	String TAG = "ContactsActivity"; 
 	
 	TextView textView; 
 	QBUser user;
+	ListView contactsListView;
+	ContactListAdapter contactsAdapter; 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,41 +38,19 @@ public class ContactsActivity extends Activity implements QBCallback {
 		setContentView(R.layout.contacts_activity);
 		Bundle extras = getIntent().getExtras();
 		
+		Log.d(TAG, "contacts.size = " + DataHolder.getDataHolder().getContactsSize());
+		
 		user = new QBUser();
 	    user.setId(extras.getInt("myId"));
 	    user.setLogin(extras.getString("myUsername"));
 	    user.setPassword(extras.getString("myPassword"));
-	    	    
-		
-		QBCustomObjectRequestBuilder requestBuilder = new QBCustomObjectRequestBuilder(); 
-		requestBuilder.eq("owner", user.getId()); 
-		
-		QBCustomObjects.getObjects("Contacts", requestBuilder, new QBCallback() {
-			
-			@Override
-			public void onComplete(Result result, Object arg1) {
-				// TODO Auto-generated method stub
-			}
-			
-			@Override
-			public void onComplete(Result result) {
-				// TODO Auto-generated method stub
-				if (result.isSuccess()) {
-		             QBCustomObjectLimitedResult coresult = (QBCustomObjectLimitedResult) result;
-		             ArrayList<QBCustomObject> co = coresult.getCustomObjects();
-		             Log.d("Records: ", co.toString());
-		             for (int i=0; i < co.size(); i++) {
-		                  	 
-		             }
-		         } else {
-		             Log.e("Errors",result.getErrors().toString());
-		         }
-			}
-			
-		});
-		
-		
-		
+	    
+	    contactsListView = (ListView) findViewById(R.id.contact_list);
+	    
+	    contactsListView.setOnItemClickListener(this);
+	    contactsAdapter = new ContactListAdapter(this);
+	    contactsListView.setAdapter(contactsAdapter);
+	    DataHolder.getDataHolder().registerContactListListener(this); 
 	}
 	
 	public void onAddContactClick(View v)
@@ -100,7 +81,7 @@ public class ContactsActivity extends Activity implements QBCallback {
 			public void onComplete(Result result) {
 				if (result.isSuccess()) {
 					QBUserResult qbUserResult = (QBUserResult) result;
-					Log.d("User", qbUserResult.getUser().toString());
+					DataHolder.getDataHolder().addContact(qbUserResult.getUser()); 
 				} else {
 					Log.d("Error", result.toString());
 				}
@@ -122,16 +103,15 @@ public class ContactsActivity extends Activity implements QBCallback {
 	}
 
 	@Override
-	public void onComplete(Result arg0) {
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onComplete(Result arg0, Object arg1) {
-		// TODO Auto-generated method stub
-		
+	public void onContactsChanged() {
+		Log.d(TAG, "onContactsChanged called");
+		contactsAdapter.notifyDataSetChanged();
 	}
-
 	
 }
