@@ -16,7 +16,9 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 public class BounceitActivity extends Activity implements
 		SurfaceHolder.Callback, PictureCallback {
@@ -25,7 +27,8 @@ public class BounceitActivity extends Activity implements
 	SurfaceView cameraPreviewView;
 	SurfaceHolder cameraPreviewHolder;
 	Camera camera;
-	ImageView pictureTakenView; 
+	HorizontalScrollView takenPicturesView; 
+	LinearLayout takenPicturesLinearLayout; 
 	Boolean inPreview = false;
 	private boolean cameraConfigured = false;
 
@@ -143,7 +146,9 @@ public class BounceitActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.bounceit_activity);
 		cameraPreviewView = (SurfaceView) findViewById(R.id.camera_preview);
-		pictureTakenView = (ImageView) findViewById(R.id.taken_picture); 
+		takenPicturesView = (HorizontalScrollView) findViewById(R.id.taken_pictures);
+		takenPicturesLinearLayout = (LinearLayout) findViewById(R.id.taken_pictures_linear_layout); 
+		
 		cameraPreviewHolder = cameraPreviewView.getHolder();
 		camera = getCameraInstance();
 		cameraPreviewHolder.addCallback(this);
@@ -180,7 +185,9 @@ public class BounceitActivity extends Activity implements
 	public void onPictureTaken(byte[] pictureData, Camera camera) {
 		Bitmap bmp = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length);
         //create a canvas from the bitmap, then display it in surfaceview
-        pictureTakenView.setImageBitmap(bmp); 
+		ImageView imageView = new ImageView(this); 
+        imageView.setImageBitmap(bmp);
+        takenPicturesLinearLayout.addView(imageView);
         startPreview();
 	}
 	
