@@ -1,38 +1,41 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-    
-    <SurfaceView 
-        android:layout_width="fill_parent"
-        android:layout_height="300dp"
+    android:layout_height="fill_parent" >
+
+    <SurfaceView
         android:id="@+id/camera_preview"
-        android:layout_alignParentBottom="true"
-    />
-    
-     <Button
-        android:id="@+id/btnCapture"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
+    <Button
+        android:id="@+id/take_picture_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="take picture"
-        android:onClick="onTakePictureClick"
         android:layout_alignParentBottom="true"
-	 />
-     
-     <HorizontalScrollView 
+        android:onClick="onTakePictureClick"
+        android:text="take picture" />
+
+    <HorizontalScrollView
         android:id="@+id/taken_pictures"
-        android:layout_width = "fill_parent"
-        android:layout_height = "100dp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true" >
+
+        <LinearLayout
+            android:id="@+id/taken_pictures_linear_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/bounceit_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-     >
-     
-     <LinearLayout
-          android:id="@+id/taken_pictures_linear_layout"
-          android:layout_width="wrap_content"
-          android:layout_height="fill_parent"
-          android:orientation="horizontal"
-     />
-     </HorizontalScrollView>
-         
-    
+        android:onClick="onSendButtonClick"
+        android:text="Send" />
+
 </RelativeLayout>

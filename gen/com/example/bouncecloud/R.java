@@ -22,31 +22,53 @@ public final class R {
     }
     public static final class drawable {
         public static final int bouncecloud=0x7f020000;
+        public static final int button_background=0x7f020001;
     }
     public static final class id {
-        public static final int action_settings=0x7f08000e;
-        public static final int add_contact_button=0x7f08000a;
-        public static final int bounceit_button=0x7f080006;
-        public static final int btnCapture=0x7f080001;
-        public static final int camera_preview=0x7f080000;
-        public static final int contact_id=0x7f080008;
-        public static final int contact_list=0x7f080009;
-        public static final int contact_name=0x7f080007;
-        public static final int contacts_button=0x7f080005;
-        public static final int editPassword=0x7f08000c;
-        public static final int editUsername=0x7f08000b;
-        public static final int loginButton=0x7f08000d;
-        public static final int some_text=0x7f080004;
-        public static final int taken_pictures=0x7f080002;
-        public static final int taken_pictures_linear_layout=0x7f080003;
+        public static final int action_settings=0x7f08001b;
+        public static final int add_contact_button=0x7f080014;
+        public static final int bounceit_button=0x7f08000b;
+        public static final int bounces_list=0x7f08000e;
+        public static final int btnClose=0x7f080017;
+        public static final int buttons_layout=0x7f08000c;
+        public static final int camera_preview=0x7f080007;
+        public static final int choose_text=0x7f08000f;
+        public static final int contact_id=0x7f080012;
+        public static final int contact_list=0x7f080013;
+        public static final int contact_name=0x7f080011;
+        public static final int contact_picker_list=0x7f080010;
+        public static final int contacts_button=0x7f08000d;
+        public static final int editPassword=0x7f080019;
+        public static final int editUsername=0x7f080018;
+        public static final int gallery_view=0x7f080006;
+        public static final int image=0x7f080001;
+        public static final int imgDisplay=0x7f080016;
+        public static final int like_button=0x7f080000;
+        public static final int like_text=0x7f080002;
+        public static final int loginButton=0x7f08001a;
+        public static final int options_horizontal_listview=0x7f080015;
+        public static final int pager=0x7f080003;
+        public static final int receivers_textview=0x7f080005;
+        public static final int sender_textview=0x7f080004;
+        public static final int take_picture_button=0x7f080008;
+        public static final int taken_pictures=0x7f080009;
+        public static final int taken_pictures_linear_layout=0x7f08000a;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
-        public static final int bounceit_activity=0x7f030001;
-        public static final int bounces_activity=0x7f030002;
-        public static final int contact_view=0x7f030003;
-        public static final int contacts_activity=0x7f030004;
-        public static final int login_activity=0x7f030005;
+        public static final int bounce_option_result_view=0x7f030001;
+        public static final int bounce_option_view=0x7f030002;
+        public static final int bounce_options_fullscreen=0x7f030003;
+        public static final int bounce_view=0x7f030004;
+        public static final int bounceit_activity=0x7f030005;
+        public static final int bounces_activity=0x7f030006;
+        public static final int contact_picker=0x7f030007;
+        public static final int contact_view=0x7f030008;
+        public static final int contacts_activity=0x7f030009;
+        public static final int display_bounce_from_self=0x7f03000a;
+        public static final int display_bounce_to_self=0x7f03000b;
+        public static final int layout_fullscreen_image=0x7f03000c;
+        public static final int login_activity=0x7f03000d;
     }
     public static final class menu {
         public static final int main=0x7f070000;

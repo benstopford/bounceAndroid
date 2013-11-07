@@ -1,7 +1,5 @@
 package com.example.bouncecloud;
 
-import java.util.concurrent.RunnableScheduledFuture;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -46,7 +44,6 @@ public class ContactsActivity extends Activity implements AdapterView.OnItemClic
 	    user.setPassword(extras.getString("myPassword"));
 	    
 	    contactsListView = (ListView) findViewById(R.id.contact_list);
-	    
 	    contactsListView.setOnItemClickListener(this);
 	    contactsAdapter = new ContactListAdapter(this);
 	    contactsListView.setAdapter(contactsAdapter);

@@ -32,6 +32,7 @@ public class MainActivity extends Activity implements QBCallback {
 			if (result.isSuccess()) {
 				Intent intent = new Intent(MainActivity.this, LoginActivity.class);
 				startActivity(intent); 
+				finish();
 			} else {
 				AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 	            dialog.setMessage("Error(s) occurred. Look into DDMS log for details, " +

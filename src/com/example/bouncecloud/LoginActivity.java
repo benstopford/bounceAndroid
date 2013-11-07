@@ -60,11 +60,12 @@ public class LoginActivity extends Activity implements QBCallback {
             intent.putExtra("myUsername", user.getLogin());
             intent.putExtra("myPassword", user.getPassword());
             
-            DataHolder.getDataHolder().setSignInUser(user); 
+            DataHolder.getDataHolder().userLogin(user); 
 
             startActivity(intent);
             Toast.makeText(this, "You've been successfully logged in application",
                     Toast.LENGTH_SHORT).show();
+            finish();
         } else {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             dialog.setMessage("Error(s) occurred. Look into DDMS log for details, " +

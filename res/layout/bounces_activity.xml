@@ -2,36 +2,32 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
 >
-    
-    <LinearLayout 
-        	android:layout_width = "fill_parent"
-        	android:layout_height = "wrap_content"
-        	android:orientation="vertical"
-	>
-    
-    <TextView
-        android:id="@+id/some_text"
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:id="@+id/buttons_layout"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        />
-    
-    
-    <Button
-        android:id="@+id/contacts_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text = "Contacts"
-        android:onClick="onContactsClick"
-     />
-    
-    <Button
-        android:id="@+id/bounceit_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text = "Bounce it"
-        android:onClick="onBounceitClick"
-     />
-    
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/contacts_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onContactsClick"
+            android:text="Contacts" />
+
+        <Button
+            android:id="@+id/bounceit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onBounceitClick"
+            android:text="Bounce it" />
     </LinearLayout>
+
+    <ListView
+        android:id="@+id/bounces_list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/buttons_layout" />
 
 </RelativeLayout>

@@ -13,18 +13,18 @@
         android:icon="@drawable/bouncecloud"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        
         <receiver
             android:name="com.example.services.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+
                 <category android:name="com.example.gcm" />
             </intent-filter>
         </receiver>
-        
+
         <service android:name="com.example.services.GcmIntentService" />
-        
+
         <activity
             android:name="com.example.bouncecloud.MainActivity"
             android:label="@string/app_name" >
@@ -34,38 +34,55 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-         <activity android:name="com.example.bouncecloud.LoginActivity"
-                  android:label="Login">
+        <activity
+            android:name="com.example.bouncecloud.LoginActivity"
+            android:label="Login" >
         </activity>
-        
-         <activity android:name="com.example.bouncecloud.BouncesActivity"
-                  android:label="Bounces">
+        <activity
+            android:name="com.example.bouncecloud.BouncesActivity"
+            android:label="Bounces" >
         </activity>
-        
-         <activity android:name="com.example.bouncecloud.ContactsActivity"
-                  android:label="Contacts">
+        <activity
+            android:name="com.example.bouncecloud.DisplayBounceFromSelf"
+            android:label="Display Outgoing Bounce" >
         </activity>
-        
-        <activity android:name="com.example.bouncecloud.BounceitActivity"
-                  android:label="Bounceit">
+        <activity
+            android:name="com.example.bouncecloud.DisplayBounceToSelf"
+            android:label="Display Incoming Bounce" >
         </activity>
-        
+        <activity
+            android:name="com.example.bouncecloud.ContactPicker"
+            android:label="Picker" >
+        </activity>
+        <activity
+            android:name="com.example.bouncecloud.ContactsActivity"
+            android:label="Contacts" >
+        </activity>
+        <activity
+            android:name="com.example.bouncecloud.BounceitActivity"
+            android:label="Bounceit" >
+        </activity>
+        <activity
+            android:name="com.example.bouncecloud.DisplayBounceOptionsFullScreen"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+        </activity>
     </application>
-    
+
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <uses-feature android:name="android.hardware.camera" />
-    
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    
-     <permission android:name="com.example.gcm.permission.C2D_MESSAGE"
+
+    <permission
+        android:name="com.example.gcm.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
+
     <uses-permission android:name="com.example.gcm.permission.C2D_MESSAGE" />
 
 </manifest>
