@@ -1,61 +1,33 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dip" >
 
- <TableLayout 
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:stretchColumns="1">
-                	
-<TableRow>         
     <TextView
-        	android:layout_width = "wrap_content"
-        	android:layout_height = "wrap_content"
-        	android:layout_gravity="center_horizontal"
-        	android:text="Username">
-    </TextView>
-</TableRow>
-
-<TableRow>     
-    <EditText
-        android:id = "@+id/editUsername"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Phone Number"
+        android:textColor="#372c24" >
+    </TextView>
+
+    <EditText
+        android:id="@+id/editPhoneNumber"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dip"
+        android:layout_marginTop="5dip"
         android:stretchColumns="1"
-        android:text = "bahakz"
-    />
- </TableRow>
- 
- <TableRow>   
-    <TextView
-        	android:layout_width = "wrap_content"
-        	android:layout_height = "wrap_content"
-        	android:layout_gravity="center_horizontal"
-        	android:text="Password">
-    </TextView>
-</TableRow>
-<TableRow>     
-    <EditText
-        android:id = "@+id/editPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:password="true"
-		android:text = "bounceit"
-    />
-</TableRow>
+        android:text="+" />
 
-<TableRow>    
     <Button
-                android:id="@+id/loginButton"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="Log in"
-                android:layout_weight="1"
-                android:onClick="onLoginButtonClick"
-                />  
- </TableRow>
- </TableLayout>
- 
-</RelativeLayout>
+        android:id="@+id/loginButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:layout_weight="1"
+        android:onClick="onLoginButtonClick"
+        android:text="Proceed" />
 
+</LinearLayout>

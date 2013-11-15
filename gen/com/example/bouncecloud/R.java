@@ -25,7 +25,7 @@ public final class R {
         public static final int button_background=0x7f020001;
     }
     public static final class id {
-        public static final int action_settings=0x7f08001b;
+        public static final int action_settings=0x7f08001a;
         public static final int add_contact_button=0x7f080014;
         public static final int bounceit_button=0x7f08000b;
         public static final int bounces_list=0x7f08000e;
@@ -38,14 +38,13 @@ public final class R {
         public static final int contact_name=0x7f080011;
         public static final int contact_picker_list=0x7f080010;
         public static final int contacts_button=0x7f08000d;
-        public static final int editPassword=0x7f080019;
-        public static final int editUsername=0x7f080018;
+        public static final int editPhoneNumber=0x7f080018;
         public static final int gallery_view=0x7f080006;
         public static final int image=0x7f080001;
         public static final int imgDisplay=0x7f080016;
         public static final int like_button=0x7f080000;
         public static final int like_text=0x7f080002;
-        public static final int loginButton=0x7f08001a;
+        public static final int loginButton=0x7f080019;
         public static final int options_horizontal_listview=0x7f080015;
         public static final int pager=0x7f080003;
         public static final int receivers_textview=0x7f080005;

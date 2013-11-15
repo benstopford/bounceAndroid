@@ -440,7 +440,8 @@ public class DataHolder {
 		ArrayList<QBCustomObject> co = coresult.getCustomObjects();
 
 		for (int i = 0; i < co.size(); i++) {
-			QBCustomObject bounceObject = co.get(i);
+			QBCustomObject bounceObject = co.get(i); 
+			Log.d(TAG, "bounce object is : " + bounceObject.toString());
 			addBounceFromCustomObject(bounceObject);
 		}
 	}
