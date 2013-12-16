@@ -8,7 +8,6 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -100,14 +99,10 @@ public class BounceOptionsHListAdapter extends BaseAdapter {
 				ctx).defaultDisplayImageOptions(options).build();
 		ImageLoader.getInstance().init(config);
 
-		ImageLoader.getInstance().displayImage(
-				"http://qbprod.s3.amazonaws.com/"
-						+ bounce.getContentAt(position), image);
+		ImageLoader.getInstance().displayImage(bounce.getContentAt(position),
+				image);
 
-		WindowManager wm = (WindowManager) ctx
-				.getSystemService(Context.WINDOW_SERVICE);
-		Display display = wm.getDefaultDisplay();
-		Point size = getDisplaySize(display);
+		Point size = Utils.getDisplaySize(ctx);
 		int width = size.x;
 		int height = size.y;
 

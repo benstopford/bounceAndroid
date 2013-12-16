@@ -2,11 +2,38 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
 
+    <LinearLayout
+        android:id="@+id/created_bounce_view_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical" >
+
+        <EditText
+            android:id="@+id/question"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:lines="2" />
+
+        <HorizontalScrollView
+            android:id="@+id/taken_pictures"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+
+            <LinearLayout
+                android:id="@+id/taken_pictures_linear_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
     <SurfaceView
         android:id="@+id/camera_preview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" />
+        android:layout_below="@id/created_bounce_view_layout" />
 
     <Button
         android:id="@+id/take_picture_button"
@@ -15,19 +42,6 @@
         android:layout_alignParentBottom="true"
         android:onClick="onTakePictureClick"
         android:text="take picture" />
-
-    <HorizontalScrollView
-        android:id="@+id/taken_pictures"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true" >
-
-        <LinearLayout
-            android:id="@+id/taken_pictures_linear_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" />
-    </HorizontalScrollView>
 
     <Button
         android:id="@+id/bounceit_button"

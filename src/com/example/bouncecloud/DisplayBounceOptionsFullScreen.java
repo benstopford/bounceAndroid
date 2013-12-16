@@ -28,7 +28,7 @@ public class DisplayBounceOptionsFullScreen extends Activity {
 		
 		Log.d(TAG, "bounce id is " + bounce_id);
 		
-		Bounce bounce = DataHolder.getDataHolder().getBounceWithId(bounce_id);
+		Bounce bounce = DataHolder.getDataHolder(getApplicationContext()).getBounceWithId(bounce_id);
 		int position = extras.getInt("position", 0);
 		
 		pager = (ViewPager) findViewById(R.id.pager);

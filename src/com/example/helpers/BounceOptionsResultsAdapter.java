@@ -7,11 +7,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -117,17 +115,6 @@ public class BounceOptionsResultsAdapter extends BaseAdapter {
 			return "Nobody yet";
 		return result;
 	}
-	
-	private static Point getDisplaySize(final Display display) {
-	    final Point point = new Point();
-	    try {
-	        display.getSize(point);
-	    } catch (java.lang.NoSuchMethodError ignore) { // Older device
-	        point.x = display.getWidth();
-	        point.y = display.getHeight();
-	    }
-	    return point;
-	}
 
 	private void applyImage(ImageView image, int position) {
 
@@ -140,14 +127,10 @@ public class BounceOptionsResultsAdapter extends BaseAdapter {
 				ctx).defaultDisplayImageOptions(options).build();
 		ImageLoader.getInstance().init(config);
 
-		ImageLoader.getInstance().displayImage(
-				"http://qbprod.s3.amazonaws.com/"
-						+ bounce.getContentAt(position), image);
+		ImageLoader.getInstance().displayImage(bounce.getContentAt(position),
+				image);
 
-		WindowManager wm = (WindowManager) ctx
-				.getSystemService(Context.WINDOW_SERVICE);
-		Display display = wm.getDefaultDisplay();
-		Point size = getDisplaySize(display);
+		Point size = Utils.getDisplaySize(ctx);
 		int width = size.x;
 		int height = size.y;
 

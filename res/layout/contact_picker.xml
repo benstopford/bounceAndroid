@@ -1,21 +1,27 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-    
-      <TextView
-          android:id="@+id/choose_text"
-          android:layout_width="fill_parent"
-          android:layout_height="wrap_content"
-          android:layout_alignParentTop="true"
-          android:text="Pick one contact from the list"
-          />
-    
-      <ListView
-            android:id="@+id/contact_picker_list"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_below="@id/choose_text"
-      />
-      
+    android:layout_height="fill_parent" >
+
+    <Button
+        android:id="@+id/send_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="Send"
+        android:onClick="onSendButtonClick" />
+
+    <TextView
+        android:id="@+id/choose_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/send_button"
+        android:text="Pick one or more contacts from the list" />
+
+    <ListView
+        android:id="@+id/contact_picker_list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/choose_text" />
+
 </RelativeLayout>

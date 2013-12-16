@@ -26,11 +26,10 @@ public class FullScreenImageAdapter extends PagerAdapter {
 
 	private Activity _activity;
 	private LayoutInflater inflater;
-	private Bounce bounce; 
+	private Bounce bounce;
 
 	// constructor
-	public FullScreenImageAdapter(Activity activity,
-			Bounce bounce) {
+	public FullScreenImageAdapter(Activity activity, Bounce bounce) {
 		this._activity = activity;
 		this.bounce = bounce;
 	}
@@ -67,9 +66,8 @@ public class FullScreenImageAdapter extends PagerAdapter {
 				_activity).defaultDisplayImageOptions(options).build();
 		ImageLoader.getInstance().init(config);
 
-		ImageLoader.getInstance().displayImage(
-				"http://qbprod.s3.amazonaws.com/"
-						+ bounce.getContentAt(position), image);
+		ImageLoader.getInstance().displayImage(bounce.getContentAt(position),
+				image);
 
 		// close button click event
 		btnClose.setOnClickListener(new View.OnClickListener() {

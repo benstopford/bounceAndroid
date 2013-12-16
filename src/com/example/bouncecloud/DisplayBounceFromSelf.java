@@ -34,21 +34,36 @@ public class DisplayBounceFromSelf extends Activity implements BounceListener,
 		setContentView(R.layout.display_bounce_from_self);
 
 		Bundle extras = getIntent().getExtras();
+		
 		String bounce_id = extras.getString("bounce_id");
-		bounce = DataHolder.getDataHolder().getBounceWithId(bounce_id);
-		DataHolder.getDataHolder().registerBounceListener(this, bounce_id);
-		DataHolder.getDataHolder().registerLikeListener(this, bounce_id);
-		DataHolder.getDataHolder().getLikes(bounce_id);
+		int option = extras.getInt("option"); 
+		
+		bounce = DataHolder.getDataHolder(getApplicationContext())
+				.getBounceWithId(bounce_id);
+		DataHolder.getDataHolder(getApplicationContext())
+				.registerBounceListener(this, bounce_id);
+		DataHolder.getDataHolder(getApplicationContext()).registerLikeListener(
+				this, bounce_id);
+		DataHolder.getDataHolder(getApplicationContext()).getLikes(bounce_id);
 
 		galleryListview = (Gallery) findViewById(R.id.options_horizontal_listview);
-
+		
 		if (bounce != null)
 			addBounceView(bounce);
+		galleryListview.setSelection(option); 
 	}
 
 	@Override
-	public void onBounceArrived(Bounce bounce) {
-		addBounceView(bounce);
+	public void onBounceArrived(Bounce newBounce) {
+		this.bounce = newBounce;
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				addBounceView(bounce);
+			}
+		});
 	}
 
 	public void onLikeButtonClick(View v) {

@@ -127,7 +127,7 @@ public class GcmIntentService extends IntentService {
 
 			intent = new Intent(this, DisplayBounceFromSelf.class);
 			intent.putExtra("bounce_id", bounce_id);
-
+			intent.putExtra("option", option);
 		}
 		Log.d(TAG, "bounces_id : " + bounce_id + "sender_login: "
 				+ sender_login);

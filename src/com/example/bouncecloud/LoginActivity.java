@@ -46,6 +46,9 @@ public class LoginActivity extends Activity implements QBCallback {
 	public void onLoginButtonClick(View v) {
 		String username = phoneNumberEdit.getText().toString();
 		String password = "bounceit";
+		if (username.startsWith("+")) {
+			username = username.substring(1);
+		}
 		user = new QBUser(username, password);
 		progressDialog.show();
 
@@ -59,6 +62,7 @@ public class LoginActivity extends Activity implements QBCallback {
 		if (result.isSuccess()) {
 			onUserLoggedIn(result);
 		} else {
+			Log.d(TAG, "failed to login");
 			// which basically means that user is not registered yet
 			if (result.getErrors().get(0).equals(QBErrors.UNAUTHORIZED)) {
 				Log.d(TAG, "Unauthorized user");
@@ -71,8 +75,14 @@ public class LoginActivity extends Activity implements QBCallback {
 
 	private void registerNewUser() {
 		String username = phoneNumberEdit.getText().toString();
+
+		if (username.startsWith("+")) {
+			username = username.substring(1);
+		}
+		
 		String password = "bounceit";
 		user = new QBUser(username, password);
+		user.setPhone(username);		
 		QBUsers.signUp(user, new QBCallback() {
 
 			@Override
@@ -97,18 +107,18 @@ public class LoginActivity extends Activity implements QBCallback {
 
 		QBUserResult qbUser = (QBUserResult) result;
 		user = qbUser.getUser();
+		user.setPassword("bounceit");
 
-		Intent intent = new Intent(this, BouncesActivity.class);
-		intent.putExtra("myId", user.getId());
-		intent.putExtra("myUsername", user.getLogin());
-		intent.putExtra("myPassword", user.getPassword());
-
-		DataHolder.getDataHolder().userLogin(user);
-
+		Intent intent = new Intent(this, BounceCloudActivity.class);
+		Log.d(TAG, "user Logged In with username: " + user.getLogin()
+				+ " and password: " + user.getPassword());
+		DataHolder.getDataHolder(getApplicationContext()).userLogin(user);
+		DataHolder.getDataHolder(getApplicationContext()).createSession();
+		
 		startActivity(intent);
 		Toast.makeText(this, "You've been successfully logged in application",
 				Toast.LENGTH_SHORT).show();
-		
+
 		finish();
 	}
 

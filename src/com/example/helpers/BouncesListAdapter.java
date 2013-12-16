@@ -1,13 +1,24 @@
 package com.example.helpers;
 
+import java.util.ArrayList;
+
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Gallery;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.bouncecloud.R;
@@ -17,18 +28,26 @@ public class BouncesListAdapter extends BaseAdapter {
 	LayoutInflater layoutInflater;
 	String TAG = "BouncesListAdapter";
 	Context ctx;
+	ArrayList<Bounce> bounces;
+	DataHolder dataHolder;
 
-	public BouncesListAdapter(Context ctx) {
+	public BouncesListAdapter(Context ctx, ArrayList<Bounce> bounces) {
 		this.layoutInflater = (LayoutInflater) ctx
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		this.ctx = ctx;
+		this.bounces = bounces;
+		this.dataHolder = DataHolder.getDataHolder(ctx);
+	}
+
+	public void setBounces(ArrayList<Bounce> bounces) {
+		this.bounces = bounces;
+		notifyDataSetChanged();
 	}
 
 	@Override
 	public int getCount() {
-		Log.d(TAG, "getCount called and returned"
-				+ DataHolder.getDataHolder().getContactsSize());
-		return DataHolder.getDataHolder().getBouncesSize();
+		Log.d(TAG, "getCount called and returned" + bounces.size());
+		return bounces.size();
 	}
 
 	@Override
@@ -50,58 +69,144 @@ public class BouncesListAdapter extends BaseAdapter {
 		if (convertView == null) {
 			convertView = layoutInflater.inflate(R.layout.bounce_view, null);
 			viewHolder = new ViewHolder();
-			viewHolder.sender = (TextView) convertView
-					.findViewById(R.id.sender_textview);
-			viewHolder.receiver = (TextView) convertView
-					.findViewById(R.id.receivers_textview);
-			viewHolder.optionsGallery = (Gallery) convertView
-					.findViewById(R.id.gallery_view);
+			viewHolder.question = (TextView) convertView
+					.findViewById(R.id.question_textview);
+			viewHolder.timestamp = (TextView) convertView
+					.findViewById(R.id.timestamp_textview);
+			viewHolder.optionsLayout = (LinearLayout) convertView
+					.findViewById(R.id.options_linear_layout);
+			viewHolder.profileImage = (ImageView) convertView
+					.findViewById(R.id.sender_profile_image);
+			viewHolder.deleteButton = (ImageButton) convertView
+					.findViewById(R.id.delete_button);
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
-		applySender(viewHolder.sender, position);
-		applyReceiver(viewHolder.receiver, position);
-		applyOptions(viewHolder.optionsGallery, position);
+		applyQuestion(viewHolder.question, position);
+		applyTimestamp(viewHolder.timestamp, position);
+		applyOptions(viewHolder.optionsLayout, position);
+		applySenderProfileImage(viewHolder.profileImage, position);
+		applyDeleteButton(viewHolder.deleteButton, position);
 
 		return convertView;
 	}
 
-	private void applySender(TextView sender, int position) {
-		Log.d(TAG, "setting sender to "
-				+ DataHolder.getDataHolder().getBounceAtIndex(position)
-						.getSender());
-		sender.setText(DataHolder.getDataHolder().getBounceAtIndex(position)
-				.getSender().toString());
+	private void applyQuestion(TextView question, int position) {
+		if (bounces.get(position).getQuestion() != null)
+			question.setText(bounces.get(position).getQuestion().toString());
 	}
 
-	private void applyReceiver(TextView receiver, int position) {
-		Log.d(TAG, "setting receiver to "
-				+ DataHolder.getDataHolder().getBounceAtIndex(position)
-						.getReceiversAsString());
-		receiver.setText(DataHolder.getDataHolder().getBounceAtIndex(position)
-				.getReceiversAsString());
+	private void applyTimestamp(TextView timestamp, int position) {
+
+		Log.d(TAG, "setting timestamp to " + bounces.get(position).getSendAt());
+
+		timestamp.setText("Sent "
+				+ Utils.getTimeAgo(bounces.get(position).getSendAt(), ctx)
+				+ "status : " + bounces.get(position).getStatus());
+	}
+
+	private void showConfirmDialog(final String bounceID) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+		builder.setTitle("Confirm");
+		builder.setMessage("Are you sure?");
+		builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+			public void onClick(DialogInterface dialog, int which) {
+				dataHolder.removeBounceWithInternalID(Integer
+						.parseInt(bounceID));
+				dialog.dismiss();
+			}
+
+		});
+		builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// Do nothing
+				dialog.dismiss();
+			}
+		});
+
+		AlertDialog alert = builder.create();
+		alert.show();
+	}
+
+	private void applyDeleteButton(ImageButton button, int position) {
+		button.setTag(bounces.get(position).getID());
+		button.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Log.d(TAG, "onButtonClick called");
+				showConfirmDialog(v.getTag().toString());
+			}
+		});
+	}
+
+	private void applySenderProfileImage(ImageView profileImage, int position) {
+		Bounce bounce = bounces.get(position);
+		Contact user;
+
+		if (bounce.isFromSelf()) {
+			user = dataHolder.getSelf();
+			Log.d(TAG, "user is Self, setting personal profile Image");
+		} else {
+			user = dataHolder.getContactWithUserId(bounce.getSender());
+		}
+		if (user != null && user.getProfileImage() != null) {
+			Bitmap bmp = BitmapFactory.decodeByteArray(user.getProfileImage(),
+					0, user.getProfileImage().length);
+			profileImage.setImageBitmap(bmp);
+		} else {
+
+		}
 	}
 
 	@SuppressLint("NewApi")
-	private void applyOptions(Gallery optionsView, int position) {
-		Log.d(TAG, "setting receiver to "
-				+ DataHolder.getDataHolder().getBounceAtIndex(position)
-						.getReceiversAsString());
+	private void applyOptions(LinearLayout optionsView, int position) {
+		Bounce bounce = bounces.get(position);
+		optionsView.removeAllViews();
 
-		Bounce bounce = DataHolder.getDataHolder().getBounceAtIndex(position);
+		for (int i = 0; i < bounce.getNumberOfOptions(); i++) {
+			ImageView image = new ImageView(ctx);
 
-		BounceOptionsHListAdapter adapter = new BounceOptionsHListAdapter(ctx,
-				bounce);
-		
-		adapter.setImageHeightMultiplier(0.3);
-		optionsView.setAdapter(adapter);
+			RelativeLayout bounceOptionView = new RelativeLayout(ctx);
+			LinearLayout.LayoutParams bounceOptionparams = new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT,
+					LinearLayout.LayoutParams.WRAP_CONTENT);
+			bounceOptionparams.setMargins(0, 0, 5, 5);
+			bounceOptionView.setLayoutParams(bounceOptionparams);
+
+			RelativeLayout.LayoutParams optionImageparams = new RelativeLayout.LayoutParams(
+					Utils.getDisplaySize(ctx).x / 2,
+					Utils.getDisplaySize(ctx).x / 2);
+			optionImageparams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+			image.setLayoutParams(optionImageparams);
+			Utils.displayImage(ctx, bounce.getContentAt(i), image);
+			bounceOptionView.addView(image);
+
+			TextView optionTextView = new TextView(ctx);
+			RelativeLayout.LayoutParams optionTextParams = new RelativeLayout.LayoutParams(
+					Utils.getDisplaySize(ctx).x / 2,
+					RelativeLayout.LayoutParams.WRAP_CONTENT);
+			optionTextParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+			optionTextView.setLayoutParams(optionTextParams);
+			optionTextView.setBackgroundColor(Color.parseColor("#60000000"));
+			optionTextView.setText(bounce.getOptionNames().get(i));
+			bounceOptionView.addView(optionTextView);
+
+			optionsView.addView(bounceOptionView);
+
+		}
 	}
 
 	static class ViewHolder {
-		TextView sender;
-		TextView receiver;
-		Gallery optionsGallery;
+		TextView question;
+		TextView timestamp;
+		LinearLayout optionsLayout;
+		ImageView profileImage;
+		ImageButton deleteButton;
 	}
 
 }

@@ -30,25 +30,36 @@ public class DisplayBounceToSelf extends Activity implements BounceListener,
 
 		Bundle extras = getIntent().getExtras();
 		String bounce_id = extras.getString("bounce_id");
-		bounce = DataHolder.getDataHolder().getBounceWithId(bounce_id);
-		DataHolder.getDataHolder().registerBounceListener(this, bounce_id);
-		
+		bounce = DataHolder.getDataHolder(getApplicationContext())
+				.getBounceWithId(bounce_id);
+		DataHolder.getDataHolder(getApplicationContext())
+				.registerBounceListener(this, bounce_id);
+
 		galleryListview = (Gallery) findViewById(R.id.options_horizontal_listview);
-		
+
 		if (bounce != null)
 			addBounceView(bounce);
 	}
 
 	@Override
-	public void onBounceArrived(Bounce bounce) {
-		addBounceView(bounce);
+	public void onBounceArrived(Bounce newbounce) {
+		this.bounce = newbounce; 
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				addBounceView(bounce);
+			}
+		});
 	}
 
 	public void onLikeButtonClick(View v) {
 		int position = galleryListview.getPositionForView(v);
 		Log.d(TAG, "Pressed like for " + position);
 
-		DataHolder.getDataHolder().sendLike(bounce, position);
+		DataHolder.getDataHolder(getApplicationContext()).sendLike(bounce,
+				position);
 
 	}
 
