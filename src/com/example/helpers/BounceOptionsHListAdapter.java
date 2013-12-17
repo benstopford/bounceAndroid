@@ -14,11 +14,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.example.bouncecloud.R;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 @SuppressLint("NewApi")
 public class BounceOptionsHListAdapter extends BaseAdapter {
@@ -90,17 +85,7 @@ public class BounceOptionsHListAdapter extends BaseAdapter {
 	@SuppressLint("NewApi")
 	private void applyImage(ImageView image, int position) {
 
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.cacheInMemory().cacheOnDisc()
-				.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-				.displayer(new RoundedBitmapDisplayer(20)).build();
-		// Load and display image
-		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
-				ctx).defaultDisplayImageOptions(options).build();
-		ImageLoader.getInstance().init(config);
-
-		ImageLoader.getInstance().displayImage(bounce.getContentAt(position),
-				image);
+		Utils.displayImage(ctx, bounce.getContentAt(position), image);
 
 		Point size = Utils.getDisplaySize(ctx);
 		int width = size.x;

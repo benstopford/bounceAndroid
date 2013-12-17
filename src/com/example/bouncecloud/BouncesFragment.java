@@ -25,6 +25,8 @@ import com.example.helpers.Bounce;
 import com.example.helpers.BouncesListAdapter;
 import com.example.helpers.DataHolder;
 import com.example.interfaces.BouncesListListener;
+import com.example.interfaces.NewsArrivedListener;
+import com.example.interfaces.SessionCreatedListener;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.quickblox.core.QBCallbackImpl;
 import com.quickblox.core.result.Result;
@@ -33,7 +35,7 @@ import com.quickblox.module.messages.model.QBEnvironment;
 import com.quickblox.module.users.model.QBUser;
 
 public class BouncesFragment extends Fragment implements BouncesListListener,
-		OnItemClickListener {
+		OnItemClickListener, SessionCreatedListener, NewsArrivedListener {
 
 	private static final String TAG = "BounceActivity";
 
@@ -70,18 +72,30 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 		bounces = dataHolder.getBounces();
 
 		for (int i = 0; i < bounces.size(); i++) {
-			Log.d(TAG, " bounce contents: " + bounces.get(i).getContents());
+			Log.d(TAG, " bounce statues: " + bounces.get(i).getStatus());
 		}
 
 		bouncesListAdapter = new BouncesListAdapter(getActivity(), bounces);
 		bouncesListView.setAdapter(bouncesListAdapter);
 		bouncesListView.setOnItemClickListener(this);
 		dataHolder.registerBouncesListListener(this);
+		dataHolder.registerSessionCreatedListener(this);
+		dataHolder.registerNewsListener(this);
+		dataHolder.updateNews();
+		initialize(dataHolder.getSelfUser());
 		QBUser user = dataHolder.getSelfUser();
 		Log.d(TAG, "user is " + user.getLogin() + " " + user.getPassword());
-		initialize(user);
 
 		return rootView;
+	}
+
+	@Override
+	public void onDestroyView() {
+		// TODO Auto-generated method stub
+		dataHolder.deregisterBouncesListListener(this);
+		dataHolder.deregisterSessionCreatedListener(this);
+		dataHolder.deregisterNewsListener(this);
+		super.onDestroyView();
 	}
 
 	public void onBounceitClick(View v) {
@@ -179,9 +193,9 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 	}
 
 	private void initialize(QBUser user) {
-		if (dataHolder.isRegistered() == false) {
-			registerBackground();
-		}
+		// if (dataHolder.isRegistered() == false) {
+		registerBackground();
+		// }
 	}
 
 	@Override
@@ -190,6 +204,11 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 		Log.d(TAG, "OnItemClick called");
 		Bounce bounce = bounces.get(position);
 
+		if (bounce.getStatus().equals(Consts.BOUNCE_STATUS_LOADING)
+				|| bounce.getStatus().equals(Consts.BOUNCE_STATUS_SENDING)) {
+			return;
+		}
+		
 		if (bounce.isDraft()) {
 			Log.d(TAG, "putting extra to bounceIt " + bounce.getID());
 			Intent intent = new Intent(getActivity(), BounceitActivity.class);
@@ -208,6 +227,23 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 			startActivity(intent);
 		}
 
+	}
+
+	@Override
+	public void onSessionWithUserCreated() {
+		initialize(DataHolder.getDataHolder(getActivity()).getSelfUser());
+		dataHolder.updateNews();
+	}
+
+	@Override
+	public void onNewNews() {
+		getActivity().runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				dataHolder.updateNews();
+			}
+		});
 	}
 
 }

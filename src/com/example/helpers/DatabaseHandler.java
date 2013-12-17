@@ -30,6 +30,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String TABLE_CONTACTS = "contacts";
 	private static final String TABLE_BOUNCES = "bounces";
 	private static final String TABLE_PERSONAL = "personal";
+	private static final String TABLE_SEEN = "seen";
+	private static final String TABLE_NEWS = "news";
+
+	private static final String NEWS_KEY_ID = "id";
+	private static final String NEWS_KEY_NEWS_ID = "news_id";
+
+	// Seen table columns names
+	private static final String SEEN_KEY_ID = "id";
+	private static final String SEEN_KEY_BOUNCE_ID = "bounce_id";
+	private static final String SEEN_KEY_CONTACT_ID = "contact_id";
 
 	// Personal Table Columns names
 	private static final String PERSONAL_KEY_ID = "id";
@@ -64,6 +74,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String BOUNCES_KEY_OPTION_TITLES = "option_titles";
 	private static final String BOUNCES_KEY_SEND_AT = "send_at";
 	private static final String BOUNCES_KEY_STATUS = "status";
+	private static final String BOUNCES_KEY_ISSEEN = "is_seen";
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -101,9 +112,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ BOUNCES_KEY_ISFROMSELF + " INTEGER," + BOUNCES_KEY_QUESTION
 				+ " TEXT," + BOUNCES_KEY_OPTION_TITLES + " TEXT,"
 				+ BOUNCES_KEY_SEND_AT + " INTEGER," + BOUNCES_KEY_STATUS
+				+ " TEXT," + BOUNCES_KEY_ISSEEN + " INTEGER" + ")";
+		db.execSQL(CREATE_BOUNCES_TABLE);
+
+		String CREATE_SEEN_TABLE = "CREATE TABLE " + TABLE_SEEN + "("
+				+ SEEN_KEY_ID + " INTEGER PRIMARY KEY," + SEEN_KEY_BOUNCE_ID
+				+ " TEXT," + SEEN_KEY_CONTACT_ID + " INTEGER" + ")";
+
+		db.execSQL(CREATE_SEEN_TABLE);
+
+		String CREATE_NEWS_TABLE = "CREATE TABLE " + TABLE_NEWS + "("
+				+ NEWS_KEY_ID + " INTEGER PRIMARY KEY," + NEWS_KEY_NEWS_ID
 				+ " TEXT" + ")";
 
-		db.execSQL(CREATE_BOUNCES_TABLE);
+		db.execSQL(CREATE_NEWS_TABLE);
 	}
 
 	// Upgrading database
@@ -115,6 +137,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOUNCES);
 		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_PERSONAL);
+		// Drop older table if existed
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SEEN);
+		// Drop older table if existed
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_NEWS);
 		// Create tables again
 		onCreate(db);
 	}
@@ -305,6 +331,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		values.put(BOUNCES_KEY_SEND_AT, bounce.getSendAt().getTime());
 		values.put(BOUNCES_KEY_STATUS, bounce.getStatus());
+		values.put(BOUNCES_KEY_ISSEEN, bounce.getIsSeen());
 
 		// Inserting Row
 		long res = db.insert(TABLE_BOUNCES, null, values);
@@ -322,8 +349,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				BOUNCES_KEY_CONTENTS, BOUNCES_KEY_RECEIVERS,
 				BOUNCES_KEY_ISFROMSELF, BOUNCES_KEY_QUESTION,
 				BOUNCES_KEY_OPTION_TITLES, BOUNCES_KEY_SEND_AT,
-				BOUNCES_KEY_STATUS }, BOUNCES_KEY_ID + "=?",
-				new String[] { String.valueOf(id) }, null, null, null, null);
+				BOUNCES_KEY_STATUS, BOUNCES_KEY_ISSEEN },
+				BOUNCES_KEY_ID + "=?", new String[] { String.valueOf(id) },
+				null, null, null, null);
 		if (cursor == null)
 			return null;
 
@@ -344,7 +372,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				cursor.getString(8), // question
 				convertStringToArrayOfString(cursor.getString(9)), // optionTitles
 				new Date(cursor.getLong(10)), // sentAt
-				cursor.getString(11) // status
+				cursor.getString(11), // status
+				cursor.getInt(12) // isSeen
 		);
 		return bounce;
 	}
@@ -373,7 +402,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 						cursor.getString(8), // question
 						convertStringToArrayOfString(cursor.getString(9)), // OptionTitles
 						new Date(cursor.getLong(10)), // sentAt
-						cursor.getString(11) // status
+						cursor.getString(11), // status
+						cursor.getInt(12) // isSeen
 				);
 				bounceList.add(bounce);
 			} while (cursor.moveToNext());
@@ -383,7 +413,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return bounceList;
 	}
 
-	// Updating single contact
+	// Updating single bounce
 	public int updateBounce(Bounce bounce) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
@@ -403,13 +433,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				convertArrayOfStringToString(bounce.getOptionNames()));
 		values.put(BOUNCES_KEY_SEND_AT, bounce.getSendAt().getTime());
 		values.put(BOUNCES_KEY_STATUS, bounce.getStatus());
+		values.put(BOUNCES_KEY_ISSEEN, bounce.getIsSeen());
+
+		Log.d(TAG, "on Update status is " + bounce.getStatus());
 
 		// updating row
 		return db.update(TABLE_BOUNCES, values, BOUNCES_KEY_ID + " = ?",
 				new String[] { String.valueOf(bounce.getID()) });
 	}
 
-	// Deleting single contact
+	// Deleting single Bounce
 	public void deleteBounce(Bounce bounce) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_BOUNCES, BOUNCES_KEY_ID + " = ?",
@@ -432,6 +465,104 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		cursor.close();
 		// return count
 		return cursor.getCount();
+	}
+
+	// Adding new contact
+	void addSeen(Seen seenBy) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues values = new ContentValues();
+		values.put(SEEN_KEY_BOUNCE_ID, seenBy.getBounceID());
+		values.put(SEEN_KEY_CONTACT_ID, seenBy.getContactID());
+
+		// Inserting Row
+		db.insert(TABLE_SEEN, null, values);
+		db.close(); // Closing database connection
+	}
+
+	// Updating single contact
+	public int updateSeen(Seen seenBy) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues values = new ContentValues();
+		values.put(SEEN_KEY_BOUNCE_ID, seenBy.getBounceID());
+		values.put(SEEN_KEY_CONTACT_ID, seenBy.getContactID());
+		// updating row
+		return db.update(TABLE_SEEN, values, CONTACTS_KEY_ID + " = ?",
+				new String[] { String.valueOf(seenBy.getID()) });
+	}
+
+	// Getting All Contacts
+	public ArrayList<Seen> getAllSeenBy() {
+		ArrayList<Seen> seenList = new ArrayList<Seen>();
+		// Select All Query
+		String selectQuery = "SELECT  * FROM " + TABLE_SEEN;
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		// looping through all rows and adding to list
+		if (cursor.moveToFirst()) {
+			do {
+				Seen seenBy = new Seen(Integer.parseInt(cursor.getString(0)),
+						cursor.getString(1), cursor.getInt(2));
+				seenList.add(seenBy);
+			} while (cursor.moveToNext());
+		}
+		// return contact list
+		return seenList;
+	}
+
+	// Getting All Contacts
+	public ArrayList<Seen> getAllSeenByForBounce(String bounce_id) {
+		ArrayList<Seen> seenList = new ArrayList<Seen>();
+		// Select All Query
+		String selectQuery = "SELECT  * FROM " + TABLE_SEEN + " WHERE "
+				+ SEEN_KEY_BOUNCE_ID + " = " + "\"" + bounce_id + "\"";
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		// looping through all rows and adding to list
+		if (cursor.moveToFirst()) {
+			do {
+				Seen seenBy = new Seen(Integer.parseInt(cursor.getString(0)),
+						cursor.getString(1), cursor.getInt(2));
+				seenList.add(seenBy);
+			} while (cursor.moveToNext());
+		}
+		// return contact list
+		return seenList;
+	}
+
+	// Deleting single contact
+	public void deleteSeen(Seen seenBy) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		db.delete(TABLE_SEEN, SEEN_KEY_ID + " = ?",
+				new String[] { String.valueOf(seenBy.getID()) });
+		db.close();
+	}
+
+	// Adding new contact
+	void addNews(String newsID) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues values = new ContentValues();
+		values.put(NEWS_KEY_NEWS_ID, newsID);
+
+		// Inserting Row
+		db.insert(TABLE_NEWS, null, values);
+		db.close(); // Closing database connection
+	}
+
+	public Integer findNews(String newsID) {
+		// Select All Query
+		String selectQuery = "SELECT  * FROM " + TABLE_NEWS + " WHERE "
+				+ NEWS_KEY_NEWS_ID + " = " + "\"" + newsID + "\"";
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		// looping through all rows and adding to list
+		if (cursor.moveToFirst()) {
+			return cursor.getInt(0);
+		}
+		// return contact list
+		return null;
 	}
 
 }

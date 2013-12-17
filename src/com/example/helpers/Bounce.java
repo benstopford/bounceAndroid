@@ -3,9 +3,9 @@ package com.example.helpers;
 import java.util.ArrayList;
 import java.util.Date;
 
-import com.example.definitions.Consts;
-
 import android.util.Log;
+
+import com.example.definitions.Consts;
 
 public class Bounce {
 
@@ -23,6 +23,7 @@ public class Bounce {
 	private Integer isFromSelf; // 0 - false 1 - true
 	private Date sendAt;
 	private String status; // status Consts in Consts file
+	private Integer isSeen; // 0 - false 1 - true
 
 	public Bounce() {
 
@@ -31,7 +32,8 @@ public class Bounce {
 	public Bounce(int sender_id, int numberOfOptions, ArrayList<Integer> type,
 			ArrayList<String> content, ArrayList<Integer> receivers,
 			String bounce_id, int isFromSelf, String question,
-			ArrayList<String> optionNames, Date sendAt, String status) {
+			ArrayList<String> optionNames, Date sendAt, String status,
+			int isSeen) {
 		this.sender_id = sender_id;
 		this.numberOfOptions = numberOfOptions;
 		this.type = type;
@@ -43,12 +45,14 @@ public class Bounce {
 		this.optionNames = optionNames;
 		this.sendAt = sendAt;
 		this.status = status;
+		this.isSeen = isSeen;
 	}
 
 	public Bounce(int sender_id, int numberOfOptions, ArrayList<Integer> type,
 			ArrayList<String> content, ArrayList<Integer> receivers,
 			String bounce_id, long ID, int isFromSelf, String question,
-			ArrayList<String> optionNames, Date sendAt, String status) {
+			ArrayList<String> optionNames, Date sendAt, String status,
+			int isSeen) {
 		this.sender_id = sender_id;
 		this.numberOfOptions = numberOfOptions;
 		this.type = type;
@@ -61,6 +65,7 @@ public class Bounce {
 		this.optionNames = optionNames;
 		this.sendAt = sendAt;
 		this.status = status;
+		this.isSeen = isSeen;
 	}
 
 	public Date getSendAt() {
@@ -120,6 +125,9 @@ public class Bounce {
 	}
 
 	public String getContentAt(int indexOfOption) {
+		if (indexOfOption >= content.size())
+			return null;
+
 		return content.get(indexOfOption);
 	}
 
@@ -192,5 +200,17 @@ public class Bounce {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public Integer getIsSeen() {
+		return this.isSeen;
+	}
+
+	public void setIsSeen(int isSeen) {
+		this.isSeen = isSeen;
+	}
+
+	public boolean isSeen() {
+		return (isSeen == 1);
 	}
 }

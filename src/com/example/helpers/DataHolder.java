@@ -7,7 +7,6 @@ import static com.example.definitions.Consts.LIKE_BOUNCE_OWNER_FIELD_NAME;
 import static com.example.definitions.Consts.LIKE_OPTION_FIELD_NAME;
 import static com.example.definitions.Consts.LIKE_SENDER_FIELD_NAME;
 import static com.example.definitions.Consts.LIKE_SENDER_LOGIN_FIELD_NAME;
-import static com.example.definitions.Consts.MESSAGE_TYPE_BOUNCE;
 import static com.example.definitions.Consts.MESSAGE_TYPE_LIKE;
 import static com.example.definitions.Consts.OWNER_FIELD_NAME;
 import static com.example.definitions.Consts.RECEIVERS_FIELD_NAME;
@@ -30,7 +29,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -41,6 +39,8 @@ import com.example.interfaces.BounceListener;
 import com.example.interfaces.BouncesListListener;
 import com.example.interfaces.ContactListListener;
 import com.example.interfaces.LikeListener;
+import com.example.interfaces.NewsArrivedListener;
+import com.example.interfaces.SessionCreatedListener;
 import com.quickblox.core.QBCallback;
 import com.quickblox.core.QBCallbackImpl;
 import com.quickblox.core.result.Result;
@@ -70,8 +70,10 @@ public class DataHolder {
 	private static DatabaseHandler databaseHandler;
 	private static Context context;
 	private static ArrayList<Contact> contacts;
+	private static ArrayList<NewsArrivedListener> newsListeners;
 	private static ArrayList<ContactListListener> contactListListeners;
 	private static ArrayList<BouncesListListener> bouncesListListeners;
+	private static ArrayList<SessionCreatedListener> sessionCreatedListeners;
 	private static HashMap<String, ArrayList<BounceListener>> bounceListeners;
 	private static HashMap<String, ArrayList<LikeListener>> likeListeners;
 	private static HashMap<String, ArrayList<Like>> likes;
@@ -96,10 +98,42 @@ public class DataHolder {
 		contactListListeners.add(listener);
 	}
 
+	public void registerNewsListener(NewsArrivedListener listener) {
+		if (newsListeners == null)
+			newsListeners = new ArrayList<NewsArrivedListener>();
+		newsListeners.add(listener);
+	}
+
+	public void registerSessionCreatedListener(SessionCreatedListener listener) {
+		if (sessionCreatedListeners == null) {
+			sessionCreatedListeners = new ArrayList<SessionCreatedListener>();
+		}
+		sessionCreatedListeners.add(listener);
+	}
+
+	public void deregisterSessionCreatedListener(SessionCreatedListener listener) {
+		if (sessionCreatedListeners == null) {
+			sessionCreatedListeners = new ArrayList<SessionCreatedListener>();
+		}
+		sessionCreatedListeners.remove(listener);
+	}
+
+	public void deregisterNewsListener(NewsArrivedListener listener) {
+		if (newsListeners == null)
+			newsListeners = new ArrayList<NewsArrivedListener>();
+		newsListeners.remove(listener);
+	}
+
 	public void registerBouncesListListener(BouncesListListener listener) {
 		if (bouncesListListeners == null)
 			bouncesListListeners = new ArrayList<BouncesListListener>();
 		bouncesListListeners.add(listener);
+	}
+
+	public void deregisterBouncesListListener(BouncesListListener listener) {
+		if (bouncesListListeners == null)
+			bouncesListListeners = new ArrayList<BouncesListListener>();
+		bouncesListListeners.remove(listener);
 	}
 
 	public void registerLikeListener(LikeListener listener, String bounce_id) {
@@ -177,8 +211,11 @@ public class DataHolder {
 		return contacts;
 	}
 
-	private void loadBounceContent(Bounce bounce) {
-		Log.d(TAG, "started loading Bounce content for " + bounce);
+	private void loadBounceContent(String bounce_id) {
+		Log.d(TAG, "started loading Bounce content for " + bounce_id);
+		Bounce bounce = getBounceWithId(bounce_id);
+		if (bounce == null)
+			return;
 
 		ArrayList<String> newContents = new ArrayList<String>();
 
@@ -197,7 +234,7 @@ public class DataHolder {
 				InputStream input = new BufferedInputStream(url.openStream());
 
 				String fullPath = Environment.getExternalStorageDirectory()
-						.getAbsolutePath() + "/BounceCloud-Images";
+						.getAbsolutePath() + "/BounceCloud-Images/";
 				File dir = new File(fullPath);
 				if (!dir.exists()) {
 					dir.mkdirs();
@@ -219,23 +256,43 @@ public class DataHolder {
 				output.flush();
 				output.close();
 				input.close();
-				newContents.add(Uri.fromFile(file).toString());
+				newContents.add(fullPath + file.getName().toString());
 				Log.d(TAG,
 						"Saved file of length " + total + " to "
 								+ output.toString() + " with Uri equal to "
-								+ Uri.fromFile(file).toString());
+								+ fullPath + file.getName().toString());
 			} catch (Exception e) {
 				e.printStackTrace();
+				newContents.add(null);
 			}
-		} 
+		}
 		bounce.setContents(newContents);
-		// Log.d(TAG, " the result of update:  " +
-		// databaseHandler.updateBounce(bounce));
 		bounce.setStatus(Consts.BOUNCE_STATUS_RECEIVED);
-		databaseHandler.updateBounce(bounce);
-		// bounces.add(bounce);
+		Log.d(TAG, "bounce status :" + bounce.getStatus());
+		updateBounce(bounce);
 		notifyBouncesChanged();
 		notifyBounceListener(bounce.getBounceId());
+	}
+
+	public void addSeenFromCustomObject(QBCustomObject qbCustomObject) {
+		HashMap<String, Object> fields = qbCustomObject.getFields();
+		Integer owner = Integer.parseInt((String) fields
+				.get(Consts.SEEN_OWNER_FIELD_NAME));
+
+		String bounce_id = (String) fields
+				.get(Consts.SEEN_BOUNCE_ID_FIELD_NAME);
+
+		Integer contact_id = Integer.parseInt((String) fields
+				.get(Consts.SEEN_CONTACTS_FIELD_NAME));
+
+		Seen seen = new Seen(bounce_id, contact_id);
+		databaseHandler.addSeen(seen);
+		notifyBouncesChanged();
+		notifyBounceListener(bounce_id);
+	}
+
+	public ArrayList<Seen> getAllSeenBy(String bounce_id) {
+		return databaseHandler.getAllSeenByForBounce(bounce_id);
 	}
 
 	public void addBounceFromCustomObject(QBCustomObject qbCustomObject) {
@@ -276,28 +333,31 @@ public class DataHolder {
 			}
 		}
 
-		final Bounce bounce = new Bounce(senderId, numberOfOptions, types,
-				contents, receivers, qbCustomObject.getCustomObjectId(),
-				isFromSelf, question, optionTitles,
-				qbCustomObject.getCreatedAt(), Consts.BOUNCE_STATUS_LOADING);
+		Bounce bounce = new Bounce(senderId, numberOfOptions, types, contents,
+				receivers, qbCustomObject.getCustomObjectId(), isFromSelf,
+				question, optionTitles, qbCustomObject.getCreatedAt(),
+				Consts.BOUNCE_STATUS_LOADING, 0);
 
 		Log.d(TAG, bounce.toString());
+
+		final String bounce_id = bounce.getBounceId();
+
+		bounces.add(bounce);
+		databaseHandler.addBounce(bounce);
+		notifyBouncesChanged();
+		notifyBounceListener(bounce.getBounceId());
 
 		new AsyncTask() {
 
 			@Override
 			protected Object doInBackground(Object... params) {
 				// TODO Auto-generated method stub
-				loadBounceContent(bounce);
+				loadBounceContent(bounce_id);
 				return null;
 			}
 
 		}.execute(null, null, null);
 
-		bounces.add(bounce);
-		databaseHandler.addBounce(bounce);
-		notifyBouncesChanged();
-		notifyBounceListener(bounce.getBounceId());
 	}
 
 	private void addContactById(int senderId) {
@@ -351,6 +411,76 @@ public class DataHolder {
 		return bounce_id;
 	}
 
+	public void sendNews(HashMap<String, Object> fields) {
+		QBCustomObject qbCustomObject = new QBCustomObject(
+				Consts.NEWS_CLASS_NAME);
+		qbCustomObject.setFields(fields);
+		QBCustomObjects.createObject(qbCustomObject, new QBCallback() {
+			@Override
+			public void onComplete(Result arg0, Object arg1) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onComplete(Result result) {
+				// TODO Auto-generated method stub
+				if (result.isSuccess()) {
+					Log.d(TAG, "New NEWS RECORD IS CREATED ON THE BACKEND!");
+				} else {
+					Log.e(TAG, "Failed to create new NEWS record");
+				}
+			}
+		});
+
+	}
+
+	public void createLikeNewsForBackend(QBCustomObject likeObject) {
+
+		HashMap<String, Object> likeObjectFields = likeObject.getFields();
+
+		int bounce_owner = Integer.parseInt((String) likeObjectFields
+				.get(LIKE_BOUNCE_OWNER_FIELD_NAME));
+
+		HashMap<String, Object> fields = new HashMap<String, Object>();
+		fields.put(Consts.NEWS_TYPE_FIELD_NAME, Consts.NEWS_TYPE_LIKE);
+		fields.put(Consts.NEWS_OWNER_FIELD_NAME, bounce_owner);
+		fields.put(Consts.NEWS_OBJECT_ID_FIELD_NAME,
+				likeObject.getCustomObjectId());
+
+		sendNews(fields);
+	}
+
+	public void createSeenNewsForBackend(QBCustomObject seenObject) {
+		HashMap<String, Object> seenObjectFields = seenObject.getFields();
+		int owner = Integer.parseInt((String) seenObjectFields
+				.get(Consts.SEEN_OWNER_FIELD_NAME));
+
+		HashMap<String, Object> fields = new HashMap<String, Object>();
+		fields.put(Consts.NEWS_TYPE_FIELD_NAME, Consts.NEWS_TYPE_SEEN_BY);
+		fields.put(Consts.NEWS_OWNER_FIELD_NAME, owner);
+		fields.put(Consts.NEWS_OBJECT_ID_FIELD_NAME,
+				seenObject.getCustomObjectId());
+		sendNews(fields);
+	}
+
+	public void createNewsForBackend(QBCustomObject bounceObject) {
+		HashMap<String, Object> bounce_fields = bounceObject.getFields();
+		ArrayList<Integer> receivers = Utils
+				.castToIntArrayFromStringArray((ArrayList<String>) bounce_fields
+						.get(RECEIVERS_FIELD_NAME));
+
+		for (int i = 0; i < receivers.size(); i++) {
+			HashMap<String, Object> fields = new HashMap<String, Object>();
+			fields.put(Consts.NEWS_TYPE_FIELD_NAME, Consts.NEWS_TYPE_BOUNCE);
+			fields.put(Consts.NEWS_OWNER_FIELD_NAME, receivers.get(i));
+			fields.put(Consts.NEWS_OBJECT_ID_FIELD_NAME,
+					bounceObject.getCustomObjectId());
+			sendNews(fields);
+		}
+
+	}
+
 	public void sendBouncePushNotification(QBCustomObject qbCustomObject) {
 
 		HashMap<String, Object> fields = qbCustomObject.getFields();
@@ -371,11 +501,12 @@ public class DataHolder {
 		JSONObject jsonObject = new JSONObject();
 
 		try {
-			jsonObject.put("type", MESSAGE_TYPE_BOUNCE);
+			jsonObject.put("type", Consts.MESSAGE_TYPE_BOUNCE);
 			jsonObject.put("bounce_id", qbCustomObject.getCustomObjectId()
 					.toString());
-			jsonObject.put("sender_login", getSelf().getName());
-			jsonObject.put("message", "I have a bounce for you");
+			jsonObject.put("sender_login", getSelf().getLogin());
+			jsonObject.put("message", getSelf().getName()
+					+ ": I have a bounce for you");
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -388,6 +519,43 @@ public class DataHolder {
 			public void onComplete(Result result) {
 				if (result.isSuccess()) {
 					Log.d(TAG, "BouncePushMessage sent!");
+				} else {
+					Log.e(TAG, result.getErrors().toString());
+				}
+			}
+		});
+
+	}
+
+	public void sendSeenPushNotification(QBCustomObject qbCustomObject) {
+		HashMap<String, Object> fields = qbCustomObject.getFields();
+		int owner = Integer.parseInt((String) fields
+				.get(Consts.SEEN_OWNER_FIELD_NAME));
+
+		StringifyArrayList<Integer> userIds = new StringifyArrayList<Integer>();
+		userIds.add(owner);
+
+		QBEvent event = new QBEvent();
+		event.setUserIds(userIds);
+		event.setEnvironment(QBEnvironment.DEVELOPMENT);
+		event.setNotificationType(QBNotificationType.PUSH);
+
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("type", Consts.MESSAGE_TYPE_LIKE);
+			jsonObject.put("sender_login", getSelf().getLogin());
+			jsonObject.put("message", getSelf().getLogin()
+					+ ": I have seen your bounce");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		event.setMessage(jsonObject.toString());
+		QBMessages.createEvent(event, new QBCallbackImpl() {
+			@Override
+			public void onComplete(Result result) {
+				if (result.isSuccess()) {
+					Log.d(TAG, "Seen PushMessage sent!");
 				} else {
 					Log.e(TAG, result.getErrors().toString());
 				}
@@ -421,7 +589,8 @@ public class DataHolder {
 			jsonObject.put("bounce_id", bounce_id);
 			jsonObject.put("option", option);
 			jsonObject.put("sender_login", getSelf().getName());
-			jsonObject.put("message", "I liked the following option");
+			jsonObject.put("message", getSelf().getName()
+					+ "I liked one your images");
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -475,7 +644,6 @@ public class DataHolder {
 			@Override
 			public void onComplete(Result arg0, Object arg1) {
 				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -490,6 +658,7 @@ public class DataHolder {
 					bounce.setSendAt(qbCustomObject.getCreatedAt());
 					updateBounce(bounce);
 					Log.d("New record: ", qbCustomObject.toString());
+					createNewsForBackend(qbCustomObject);
 					sendBouncePushNotification(qbCustomObject);
 				} else {
 					Log.e("Errors", result.getErrors().toString());
@@ -653,6 +822,14 @@ public class DataHolder {
 		}
 	}
 
+	private void notifySessionCreated() {
+		if (sessionCreatedListeners == null)
+			sessionCreatedListeners = new ArrayList<SessionCreatedListener>();
+		for (SessionCreatedListener listener : sessionCreatedListeners) {
+			listener.onSessionWithUserCreated();
+		}
+	}
+
 	void notifyBouncesChanged() {
 		if (bouncesListListeners == null)
 			bouncesListListeners = new ArrayList<BouncesListListener>();
@@ -722,40 +899,66 @@ public class DataHolder {
 
 	}
 
-	private void addResult(Result result) {
-		Log.d(TAG, result.toString());
-		QBCustomObjectLimitedResult coresult = (QBCustomObjectLimitedResult) result;
-		ArrayList<QBCustomObject> co = coresult.getCustomObjects();
+	public void loadSeenBywithID(String seenBy_id) {
+		QBCustomObjectRequestBuilder requestBuilder = new QBCustomObjectRequestBuilder();
+		requestBuilder.eq("_id", seenBy_id);
 
-		for (int i = 0; i < co.size(); i++) {
-			QBCustomObject bounceObject = co.get(i);
-			Log.d(TAG, "bounce object is : " + bounceObject.toString());
-			addBounceFromCustomObject(bounceObject);
-		}
+		QBCustomObjects.getObjects(Consts.SEEN_CLASS_NAME, requestBuilder,
+				new QBCallback() {
+
+					@Override
+					public void onComplete(Result arg0, Object arg1) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void onComplete(Result result) {
+						QBCustomObjectLimitedResult coresult = (QBCustomObjectLimitedResult) result;
+						ArrayList<QBCustomObject> co = coresult
+								.getCustomObjects();
+
+						for (int i = 0; i < co.size(); i++) {
+							QBCustomObject seenObject = co.get(i);
+							addSeenFromCustomObject(seenObject);
+						}
+					}
+				});
+	}
+
+	public Bounce loadBouncewithID(String bounce_id) {
+		QBCustomObjectRequestBuilder requestBuilder = new QBCustomObjectRequestBuilder();
+		requestBuilder.eq("_id", bounce_id);
+
+		QBCustomObjects.getObjects(BOUNCES_CLASS_NAME, requestBuilder,
+				new QBCallback() {
+
+					@Override
+					public void onComplete(Result arg0, Object arg1) {
+
+					}
+
+					@Override
+					public void onComplete(Result result) {
+						QBCustomObjectLimitedResult coresult = (QBCustomObjectLimitedResult) result;
+						ArrayList<QBCustomObject> co = coresult
+								.getCustomObjects();
+
+						for (int i = 0; i < co.size(); i++) {
+							QBCustomObject bounceObject = co.get(i);
+							Log.d(TAG,
+									"bounce object is : "
+											+ bounceObject.toString());
+							addBounceFromCustomObject(bounceObject);
+						}
+					}
+				});
+
+		return null;
+
 	}
 
 	public Bounce getBounceWithId(String bounce_id) {
-
-		if (findBounceWithId(bounce_id) == null) {
-			QBCustomObjectRequestBuilder requestBuilder = new QBCustomObjectRequestBuilder();
-			requestBuilder.eq("_id", bounce_id);
-
-			QBCustomObjects.getObjects(BOUNCES_CLASS_NAME, requestBuilder,
-					new QBCallback() {
-
-						@Override
-						public void onComplete(Result arg0, Object arg1) {
-
-						}
-
-						@Override
-						public void onComplete(Result result) {
-							addResult(result);
-						}
-					});
-
-			return null;
-		}
 		return findBounceWithId(bounce_id);
 	}
 
@@ -767,7 +970,8 @@ public class DataHolder {
 			return null;
 		} else {
 			for (int i = 0; i < bounces.size(); i++) {
-				if (bounces.get(i).getBounceId().equals(bounce_id))
+				if (bounces.get(i).getBounceId() != null
+						&& bounces.get(i).getBounceId().equals(bounce_id))
 					return bounces.get(i);
 			}
 		}
@@ -848,6 +1052,7 @@ public class DataHolder {
 					QBCustomObject qbCustomObject = qbCustomObjectResult
 							.getCustomObject();
 					Log.d("New record: ", qbCustomObject.toString());
+					createLikeNewsForBackend(qbCustomObject);
 					sendLikePushNotification(qbCustomObject);
 				} else {
 					Log.e("Errors", result.getErrors().toString());
@@ -1021,13 +1226,88 @@ public class DataHolder {
 				public void onComplete(Result result) {
 					if (result.isSuccess()) {
 						Log.d(TAG, "created a session with a user");
+						notifySessionCreated();
 						sync();
 					} else {
 						Log.e(TAG, "failed to create a session with user");
 					}
 				}
+
 			});
 		}
+	}
+
+	public void addNewsFromCustomObject(QBCustomObject newsObject) {
+
+		if (databaseHandler.findNews(newsObject.getCustomObjectId()) != null) {
+			return;
+		} else {
+			databaseHandler.addNews(newsObject.getCustomObjectId());
+		}
+
+		HashMap<String, Object> fields = newsObject.getFields();
+
+		String type = (String) fields.get(Consts.NEWS_TYPE_FIELD_NAME);
+		String object_id = (String) fields
+				.get(Consts.NEWS_OBJECT_ID_FIELD_NAME);
+
+		if (type != null && type.equals(Consts.NEWS_TYPE_BOUNCE)) {
+			loadBouncewithID(object_id);
+		}
+
+		if (type != null && type.equals(Consts.NEWS_TYPE_SEEN_BY)) {
+			loadSeenBywithID(object_id);
+		}
+
+	}
+
+	public void deleteObject(QBCustomObject customObject) {
+		QBCustomObjects.deleteObject(customObject, new QBCallback() {
+
+			@Override
+			public void onComplete(Result arg0, Object arg1) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onComplete(Result result) {
+				if (result.isSuccess()) {
+					Log.d(TAG, "object successfully deleted !!!");
+				} else {
+					Log.e(TAG, "Failed to delete object");
+				}
+			}
+		});
+	}
+
+	public void updateNews() {
+
+		QBCustomObjectRequestBuilder requestBuilder = new QBCustomObjectRequestBuilder();
+		requestBuilder.in(Consts.NEWS_OWNER_FIELD_NAME, getSelf().getUserID());
+
+		QBCustomObjects.getObjects(Consts.NEWS_CLASS_NAME, requestBuilder,
+				new QBCallback() {
+
+					@Override
+					public void onComplete(Result arg0, Object arg1) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void onComplete(Result result) {
+						QBCustomObjectLimitedResult coresult = (QBCustomObjectLimitedResult) result;
+						ArrayList<QBCustomObject> co = coresult
+								.getCustomObjects();
+						for (int i = 0; i < co.size(); i++) {
+							QBCustomObject newsObject = co.get(i);
+							addNewsFromCustomObject(newsObject);
+							deleteObject(newsObject);
+						}
+					}
+				});
+
 	}
 
 	public Bounce getBounceWithInternalId(long bounceID) {
@@ -1050,4 +1330,45 @@ public class DataHolder {
 		notifyBouncesChanged();
 	}
 
+	public void sendIsSeenMessage(Bounce bounce) {
+		HashMap<String, Object> fields = new HashMap<String, Object>();
+		fields.put(Consts.SEEN_OWNER_FIELD_NAME, bounce.getSender());
+		fields.put(Consts.SEEN_BOUNCE_ID_FIELD_NAME, bounce.getBounceId());
+		fields.put(Consts.SEEN_CONTACTS_FIELD_NAME, getSelf().getUserID());
+
+		QBCustomObject qbCustomObject = new QBCustomObject(
+				Consts.SEEN_CLASS_NAME);
+		qbCustomObject.setFields(fields);
+		QBCustomObjects.createObject(qbCustomObject, new QBCallback() {
+			@Override
+			public void onComplete(Result arg0, Object arg1) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onComplete(Result result) {
+				// TODO Auto-generated method stub
+				if (result.isSuccess()) {
+					Log.d(TAG, "New SEEN record on the backend");
+					QBCustomObjectResult qbCustomObjectResult = (QBCustomObjectResult) result;
+					QBCustomObject qbCustomObject = qbCustomObjectResult
+							.getCustomObject();
+					createSeenNewsForBackend(qbCustomObject);
+					sendSeenPushNotification(qbCustomObject);
+				} else {
+					Log.e(TAG, "Failed to create new SEEN record");
+				}
+			}
+		});
+
+	}
+
+	public void updateNewsListeners() {
+		if (newsListeners == null)
+			return;
+		for (int i = 0; i < newsListeners.size(); i++) {
+			newsListeners.get(i).onNewNews();
+		}
+	}
 }

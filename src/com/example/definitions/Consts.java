@@ -20,6 +20,7 @@ public interface Consts {
 
 	public static final String MESSAGE_TYPE_BOUNCE = "message_type_bounce";
 	public static final String MESSAGE_TYPE_LIKE = "message_type_like";
+	public static final String MESSAGE_TYPE_SEEN = "message_type_seen";
 
 	public static final String LIKES_CLASS_NAME = "Likes";
 	public static final String LIKE_SENDER_FIELD_NAME = "sender_id";
@@ -34,6 +35,20 @@ public interface Consts {
 	public static final String BOUNCE_STATUS_SENDING = "sending";
 	public static final String BOUNCE_STATUS_LOADING = "loading";
 
+	public static final String NEWS_CLASS_NAME = "News";
+	public static final String NEWS_OWNER_FIELD_NAME = "owner";
+	public static final String NEWS_TYPE_FIELD_NAME = "type";
+	public static final String NEWS_OBJECT_ID_FIELD_NAME = "object_id";
+
+	public static final String NEWS_TYPE_BOUNCE = "new_bounce";
+	public static final String NEWS_TYPE_LIKE = "new_like";
+	public static final String NEWS_TYPE_SEEN_BY = "seen_by";
+
+	public static final String SEEN_CLASS_NAME = "SeenBy";
+	public static final String SEEN_OWNER_FIELD_NAME = "owner";
+	public static final String SEEN_BOUNCE_ID_FIELD_NAME = "bounce_id";
+	public static final String SEEN_CONTACTS_FIELD_NAME = "contact";
+
 	public static final int YOUR_SELECT_PICTURE_REQUEST_CODE = 0;
 	public static final int PIC_CROP = 1;
 
@@ -42,5 +57,6 @@ public interface Consts {
 
 	public static final int FROM_SELF = 1;
 	public static final int NOT_FROM_SELF = 0;
+	public static final String PERMISSIONS = "permissions";
 
 }

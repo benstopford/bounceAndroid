@@ -1,6 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:background="@android:color/background_light" >
 
     <LinearLayout
         android:id="@+id/created_bounce_view_layout"
@@ -9,12 +10,40 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical" >
 
-        <EditText
-            android:id="@+id/question"
+        <LinearLayout
+            android:id="@+id/created_bounce_view_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="43dp"
             android:layout_alignParentTop="true"
-            android:lines="2" />
+            android:orientation="horizontal" >
+
+            <ImageButton
+                android:id="@+id/back_button"
+                android:layout_width="27dp"
+                android:layout_height="fill_parent"
+                android:background="@android:color/transparent"
+                android:onClick="onBackButtonClick"
+                android:scaleType="fitXY"
+                android:src="@drawable/back_arrow" />
+
+            <EditText
+                android:id="@+id/question"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="54dp"
+                android:layout_weight="1"
+                android:lines="2" />
+
+            <ImageButton
+                android:id="@+id/bounceit_button"
+                android:layout_width="27dp"
+                android:layout_height="fill_parent"
+                android:background="@android:color/transparent"
+                android:onClick="onSendButtonClick"
+                android:scaleType="fitXY"
+                android:src="@drawable/forward_arrow" />
+        </LinearLayout>
 
         <HorizontalScrollView
             android:id="@+id/taken_pictures"
@@ -35,6 +64,30 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/created_bounce_view_layout" />
 
+    <ImageButton
+        android:id="@+id/change_flash_icon"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignTop="@id/camera_preview"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/flash_on_icon"
+        android:onClick="onFlushClick"
+         />
+    
+    <ImageButton
+        android:id="@+id/change_back_and_front_icon"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@id/camera_preview"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/swap_camera_icon"
+        android:onClick="onSwapCameraClick"
+         />
+    
     <Button
         android:id="@+id/take_picture_button"
         android:layout_width="wrap_content"
@@ -42,14 +95,5 @@
         android:layout_alignParentBottom="true"
         android:onClick="onTakePictureClick"
         android:text="take picture" />
-
-    <Button
-        android:id="@+id/bounceit_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:onClick="onSendButtonClick"
-        android:text="Send" />
 
 </RelativeLayout>

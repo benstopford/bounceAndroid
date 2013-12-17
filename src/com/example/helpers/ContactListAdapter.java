@@ -3,10 +3,14 @@ package com.example.helpers;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.bouncecloud.R;
@@ -55,32 +59,48 @@ public class ContactListAdapter extends BaseAdapter {
 			viewHolder = new ViewHolder();
 			viewHolder.name = (TextView) convertView
 					.findViewById(R.id.contact_name);
-			viewHolder.id = (TextView) convertView
-					.findViewById(R.id.contact_id);
+			viewHolder.phone = (TextView) convertView
+					.findViewById(R.id.contact_phone);
+			viewHolder.profilePicture = (ImageView) convertView
+					.findViewById(R.id.contact_profile_image);
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
 		applyName(viewHolder.name, position);
-		applyId(viewHolder.id, position);
+		applyPhone(viewHolder.phone, position);
+		applyProfileImage(viewHolder.profilePicture, position);
 
 		return convertView;
 	}
 
 	private void applyName(TextView name, int position) {
-		// Log.d(TAG, "setting name to " + contacts.get(position).getName());
+		Log.d(TAG, "setting name to " + contacts.get(position).getName());
 		name.setText(contacts.get(position).getName());
 	}
 
-	private void applyId(TextView id, int position) {
-		// Log.d(TAG, "setting id to " +
-		// contacts.get(position).getPhoneNumber());
-		id.setText(contacts.get(position).getPhoneNumber());
+	private void applyPhone(TextView name, int position) {
+		Log.d(TAG, "setting phone to "
+				+ contacts.get(position).getPhoneNumber());
+		name.setText(contacts.get(position).getPhoneNumber());
+	}
+
+	private void applyProfileImage(ImageView profileImage, int position) {
+		// Log.d(TAG, "setting name to " + contacts.get(position).getName());
+		if (contacts.get(position).getProfileImage() != null) {
+			Bitmap bmp = BitmapFactory.decodeByteArray(contacts.get(position)
+					.getProfileImage(), 0, contacts.get(position)
+					.getProfileImage().length);
+			profileImage.setImageBitmap(bmp);
+		} else {
+			profileImage.setImageResource(R.drawable.no_photo_icon);
+		}
 	}
 
 	static class ViewHolder {
 		TextView name;
-		TextView id;
+		TextView phone;
+		ImageView profilePicture;
 	}
 
 }

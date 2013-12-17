@@ -7,7 +7,8 @@
     <ImageView
         android:id="@+id/option_image"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent"
+        android:layout_alignParentBottom="true" />
 
     <EditText
         android:id="@+id/option_text"

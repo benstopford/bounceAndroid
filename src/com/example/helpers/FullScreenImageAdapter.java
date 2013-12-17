@@ -1,11 +1,7 @@
 package com.example.helpers;
 
-import java.util.ArrayList;
-
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -16,11 +12,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.example.bouncecloud.R;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 public class FullScreenImageAdapter extends PagerAdapter {
 
@@ -57,17 +48,8 @@ public class FullScreenImageAdapter extends PagerAdapter {
 		image = (ImageView) viewLayout.findViewById(R.id.imgDisplay);
 		btnClose = (Button) viewLayout.findViewById(R.id.btnClose);
 
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.cacheInMemory().cacheOnDisc()
-				.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-				.displayer(new RoundedBitmapDisplayer(20)).build();
-		// Load and display image
-		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
-				_activity).defaultDisplayImageOptions(options).build();
-		ImageLoader.getInstance().init(config);
-
-		ImageLoader.getInstance().displayImage(bounce.getContentAt(position),
-				image);
+		Utils.displayImage(_activity.getApplicationContext(),
+				bounce.getContentAt(position), image);
 
 		// close button click event
 		btnClose.setOnClickListener(new View.OnClickListener() {

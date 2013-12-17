@@ -15,9 +15,10 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.example.bouncecloud.DisplayBounceFromSelf;
-import com.example.bouncecloud.DisplayBounceToSelf;
+import com.example.bouncecloud.BounceCloudActivity;
 import com.example.bouncecloud.R;
+import com.example.definitions.Consts;
+import com.example.helpers.DataHolder;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 public class GcmIntentService extends IntentService {
@@ -102,46 +103,44 @@ public class GcmIntentService extends IntentService {
 		String message = null;
 		Integer option = 0;
 
+		DataHolder.getDataHolder(getApplicationContext()).updateNewsListeners();
+
+		intent = new Intent(this, BounceCloudActivity.class);
+
 		if (type.equals(MESSAGE_TYPE_BOUNCE)) {
 			try {
-				bounce_id = jsonObject.getString("bounce_id");
-				sender_login = jsonObject.getString("sender_login");
 				message = jsonObject.getString("message");
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			intent = new Intent(this, DisplayBounceToSelf.class);
-			intent.putExtra("bounce_id", bounce_id);
 		} else if (type.equals(MESSAGE_TYPE_LIKE)) {
-
 			try {
-				bounce_id = jsonObject.getString("bounce_id");
-				option = jsonObject.getInt("option");
 				message = jsonObject.getString("message");
-				sender_login = jsonObject.getString("sender_login");
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-			intent = new Intent(this, DisplayBounceFromSelf.class);
-			intent.putExtra("bounce_id", bounce_id);
-			intent.putExtra("option", option);
+		} else if (type.equals(Consts.MESSAGE_TYPE_SEEN)) {
+			try {
+				message = jsonObject.getString("message");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+
 		Log.d(TAG, "bounces_id : " + bounce_id + "sender_login: "
 				+ sender_login);
-
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 				intent, 0);
-
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 				this)
 				.setSmallIcon(R.drawable.bouncecloud)
-				.setContentTitle(sender_login + ":")
+				.setContentTitle("New activities:")
 				.setStyle(
 						new NotificationCompat.BigTextStyle().bigText(message))
-				.setContentText(message);
+				.setContentText(message).setAutoCancel(true);
 
 		mBuilder.setContentIntent(contentIntent);
 		mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());

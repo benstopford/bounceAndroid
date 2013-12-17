@@ -224,6 +224,8 @@ public class Utils {
 
 	public static void displayImage(Context ctx, String imageURI,
 			ImageView image) {
+		if (imageURI == null)
+			return;
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
 				.cacheInMemory().cacheOnDisc()
 				.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)

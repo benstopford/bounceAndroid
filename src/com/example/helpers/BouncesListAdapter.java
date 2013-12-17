@@ -79,6 +79,8 @@ public class BouncesListAdapter extends BaseAdapter {
 					.findViewById(R.id.sender_profile_image);
 			viewHolder.deleteButton = (ImageButton) convertView
 					.findViewById(R.id.delete_button);
+			viewHolder.seenBy = (TextView) convertView
+					.findViewById(R.id.seen_by_textview);
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
@@ -88,16 +90,45 @@ public class BouncesListAdapter extends BaseAdapter {
 		applyOptions(viewHolder.optionsLayout, position);
 		applySenderProfileImage(viewHolder.profileImage, position);
 		applyDeleteButton(viewHolder.deleteButton, position);
+		applyIsSeenBy(viewHolder.seenBy, position);
+		
+		
 
 		return convertView;
 	}
 
+	private void applyIsSeenBy(TextView seenByView, int position) {
+		seenByView.clearComposingText();
+		Bounce bounce = bounces.get(position);
+		if (!bounce.isFromSelf() && !bounce.isDraft() && !bounce.isSeen()) {
+			// First time we see a bounce!
+			bounce.setIsSeen(1); // 1 - for true
+			dataHolder.updateBounce(bounce);
+			dataHolder.sendIsSeenMessage(bounce);
+		}
+
+		if (bounce.isFromSelf()) {
+			ArrayList<Seen> whoSaw = dataHolder.getAllSeenBy(bounce
+					.getBounceId());
+			String seenByLine = "Seen By";
+			for (int i = 0; i < whoSaw.size(); i++) {
+				seenByLine += whoSaw.get(i).getContactID();
+			}
+			seenByView.setText(seenByLine);
+		} else {
+			seenByView.setText("Seen by you");
+		}
+
+	}
+
 	private void applyQuestion(TextView question, int position) {
+		question.clearComposingText();
 		if (bounces.get(position).getQuestion() != null)
 			question.setText(bounces.get(position).getQuestion().toString());
 	}
 
 	private void applyTimestamp(TextView timestamp, int position) {
+		timestamp.clearComposingText();
 
 		Log.d(TAG, "setting timestamp to " + bounces.get(position).getSendAt());
 
@@ -145,6 +176,7 @@ public class BouncesListAdapter extends BaseAdapter {
 	}
 
 	private void applySenderProfileImage(ImageView profileImage, int position) {
+		profileImage.setImageResource(R.drawable.no_photo_icon);
 		Bounce bounce = bounces.get(position);
 		Contact user;
 
@@ -204,6 +236,7 @@ public class BouncesListAdapter extends BaseAdapter {
 	static class ViewHolder {
 		TextView question;
 		TextView timestamp;
+		TextView seenBy;
 		LinearLayout optionsLayout;
 		ImageView profileImage;
 		ImageButton deleteButton;

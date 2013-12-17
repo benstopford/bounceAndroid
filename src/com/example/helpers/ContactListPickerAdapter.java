@@ -3,15 +3,18 @@ package com.example.helpers;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.bouncecloud.R; 
+import com.example.bouncecloud.R;
 
 public class ContactListPickerAdapter extends BaseAdapter {
 
@@ -40,10 +43,9 @@ public class ContactListPickerAdapter extends BaseAdapter {
 		}
 		notifyDataSetChanged();
 	}
-	
-	public ArrayList<String> getClicked()
-	{
-		return chosen_ids; 
+
+	public ArrayList<String> getClicked() {
+		return chosen_ids;
 	}
 
 	@Override
@@ -74,6 +76,10 @@ public class ContactListPickerAdapter extends BaseAdapter {
 			viewHolder = new ViewHolder();
 			viewHolder.name = (TextView) convertView
 					.findViewById(R.id.contact_name);
+			viewHolder.phone = (TextView) convertView
+					.findViewById(R.id.contact_phone);
+			viewHolder.profilePicture = (ImageView) convertView
+					.findViewById(R.id.contact_profile_image);
 			viewHolder.clicked = (CheckBox) convertView
 					.findViewById(R.id.contact_clicked);
 			convertView.setTag(viewHolder);
@@ -81,14 +87,34 @@ public class ContactListPickerAdapter extends BaseAdapter {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
 		applyName(viewHolder.name, position);
+		applyPhone(viewHolder.phone, position);
+		applyProfileImage(viewHolder.profilePicture, position);
 		applyCheckBox(viewHolder.clicked, position);
 
 		return convertView;
 	}
 
 	private void applyName(TextView name, int position) {
-		Log.d(TAG, "setting name to " + contacts.get(position).getName());
+		// Log.d(TAG, "setting name to " + contacts.get(position).getName());
 		name.setText(contacts.get(position).getName());
+	}
+
+	private void applyPhone(TextView name, int position) {
+		// / Log.d(TAG, "setting phone to " +
+		// contacts.get(position).getPhoneNumber());
+		name.setText(contacts.get(position).getPhoneNumber());
+	}
+
+	private void applyProfileImage(ImageView profileImage, int position) {
+		// Log.d(TAG, "setting name to " + contacts.get(position).getName());
+		if (contacts.get(position).getProfileImage() != null) {
+			Bitmap bmp = BitmapFactory.decodeByteArray(contacts.get(position)
+					.getProfileImage(), 0, contacts.get(position)
+					.getProfileImage().length);
+			profileImage.setImageBitmap(bmp);
+		} else {
+			profileImage.setImageResource(R.drawable.no_photo_icon);
+		}
 	}
 
 	private void applyCheckBox(CheckBox checkBox, int position) {
@@ -98,6 +124,8 @@ public class ContactListPickerAdapter extends BaseAdapter {
 
 	static class ViewHolder {
 		TextView name;
+		TextView phone;
+		ImageView profilePicture;
 		CheckBox clicked;
 	}
 

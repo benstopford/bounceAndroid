@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,6 +23,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.hardware.Camera.Parameters;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -56,8 +59,11 @@ public class BounceitActivity extends Activity implements
 	private HorizontalScrollView takenPicturesView;
 	private LinearLayout takenPicturesLinearLayout;
 	private LinearLayout bounceLinearView;
+	private ImageButton flushButton;
 	private Button takePictureButton;
 	private Boolean inPreview = false;
+	private Boolean isFlushOn = false;
+	private Boolean isFrontCamera = true;
 	private boolean cameraConfigured = false;
 	private int optionNumber = 0;
 	private EditText questionView;
@@ -91,6 +97,7 @@ public class BounceitActivity extends Activity implements
 	}
 
 	private void setupPreviewView() {
+		flushButton = (ImageButton) findViewById(R.id.change_flash_icon);
 		cameraPreviewView = (SurfaceView) findViewById(R.id.camera_preview);
 		Point size = Utils.getDisplaySize(this);
 		int StatusBarHeight = getResources().getIdentifier("status_bar_height",
@@ -117,6 +124,8 @@ public class BounceitActivity extends Activity implements
 		questionView = (EditText) findViewById(R.id.question);
 		imageURIs = new ArrayList<String>();
 		cameraPreviewHolder = cameraPreviewView.getHolder();
+		isFrontCamera = true;
+		flushButton.setVisibility(View.INVISIBLE);
 		camera = getCameraInstance();
 		cameraPreviewHolder.addCallback(this);
 		cameraPreviewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -184,6 +193,8 @@ public class BounceitActivity extends Activity implements
 			Log.e(TAG, "no ID is provided");
 		}
 
+		isFlushOn = false;
+
 	}
 
 	protected void setDisplayOrientation(Camera camera, int angle) {
@@ -197,7 +208,7 @@ public class BounceitActivity extends Activity implements
 		}
 	}
 
-	private void initPreview(int width, int height) {
+	private void initPreview() {
 		Log.d(TAG, "Init preview called");
 		if (camera != null && cameraPreviewHolder.getSurface() != null) {
 			try {
@@ -212,6 +223,11 @@ public class BounceitActivity extends Activity implements
 					parameters.setPreviewSize(previewSize.width,
 							previewSize.height);
 					Log.d(TAG, "Setting camera parameters");
+					if (isFlushOn) {
+						parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
+					} else {
+						parameters.setFlashMode(Parameters.FLASH_MODE_AUTO);
+					}
 					camera.setParameters(parameters);
 					cameraConfigured = true;
 				}
@@ -241,7 +257,7 @@ public class BounceitActivity extends Activity implements
 		}
 
 		bounce.setSender(dataHolder.getSelf().getUserID());
-		bounce.setNumberOfOptions(optionNumber);
+		bounce.setNumberOfOptions(optionTitles.size());
 		bounce.setQuestion(question);
 		bounce.setOptionNames(optionTitles);
 		bounce.setTypes(types);
@@ -292,7 +308,14 @@ public class BounceitActivity extends Activity implements
 		CameraInfo cameraInfo = new CameraInfo();
 		for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
 			Camera.getCameraInfo(i, cameraInfo);
-			if (cameraInfo.facing == CameraInfo.CAMERA_FACING_FRONT) {
+			if (isFrontCamera
+					&& cameraInfo.facing == CameraInfo.CAMERA_FACING_FRONT) {
+				c = Camera.open(i);
+				return c;
+			}
+
+			if (!isFrontCamera
+					&& cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
 				c = Camera.open(i);
 				return c;
 			}
@@ -302,9 +325,51 @@ public class BounceitActivity extends Activity implements
 		return c;
 	}
 
+	public void onSwapCameraClick(View v) {
+		if (inPreview) {
+			cameraConfigured = false;
+			camera.stopPreview();
+			camera.setPreviewCallback(null);
+			camera.release();
+			isFrontCamera = !isFrontCamera;
+			if (isFrontCamera)
+				flushButton.setVisibility(View.INVISIBLE);
+			else
+				flushButton.setVisibility(View.VISIBLE);
+			camera = getCameraInstance();
+			setupCamera();
+			initPreview();
+			startPreview();
+		}
+
+	}
+
+	public void onFlushClick(View v) {
+
+		if (!inPreview)
+			return;
+		if (!getPackageManager().hasSystemFeature(
+				PackageManager.FEATURE_CAMERA_FLASH))
+			return;
+
+		cameraConfigured = false;
+		camera.stopPreview();
+		camera.setPreviewCallback(null);
+		camera.release();
+		isFlushOn = !isFlushOn;
+		camera = getCameraInstance();
+		setupCamera();
+		initPreview();
+		startPreview();
+	}
+
 	public void onTakePictureClick(View v) {
 		if (lastShownImage != null)
 			onPictureTaken(lastShownImage);
+	}
+
+	public void onBackButtonClick(View v) {
+		super.onBackPressed();
 	}
 
 	public void onSendButtonClick(View v) {
@@ -338,7 +403,7 @@ public class BounceitActivity extends Activity implements
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		// TODO Auto-generated method stub
-		initPreview(height, width);
+		initPreview();
 		startPreview();
 	}
 
@@ -384,7 +449,7 @@ public class BounceitActivity extends Activity implements
 		Utils.displayImage(this, picturePath, optionImage);
 
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-				Utils.getDisplaySize(this).x / 2,
+				android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
 				android.view.ViewGroup.LayoutParams.MATCH_PARENT);
 
 		takenPicturesLinearLayout.addView(optionView, params);
