@@ -743,6 +743,7 @@ public class DataHolder {
 		contact.setProfileImage(content);
 		databaseHandler.updateContact(contact);
 		notifyContactChanged();
+		notifyBouncesChanged(); 
 	}
 
 	public void updateProfilePicture(final Contact contact) {

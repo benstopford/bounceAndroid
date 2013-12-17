@@ -223,10 +223,13 @@ public class BounceitActivity extends Activity implements
 					parameters.setPreviewSize(previewSize.width,
 							previewSize.height);
 					Log.d(TAG, "Setting camera parameters");
-					if (isFlushOn) {
+					if (isFlushOn && !isFrontCamera) {
 						parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
 					} else {
 						parameters.setFlashMode(Parameters.FLASH_MODE_AUTO);
+					}
+					if (isFrontCamera) {
+						parameters.setFlashMode(Parameters.FLASH_MODE_OFF);
 					}
 					camera.setParameters(parameters);
 					cameraConfigured = true;
