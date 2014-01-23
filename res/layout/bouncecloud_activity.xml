@@ -1,71 +1,74 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@android:color/background_light" >
+    android:background="@color/lightgrey" >
 
     <LinearLayout
         android:id="@+id/tabs_view"
         android:layout_width="fill_parent"
         android:layout_height="52dp"
-        android:background="#BC1014"
+        android:background="@drawable/tab_bar_background"
         android:orientation="horizontal" >
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:layout_weight="1.0"
-            android:orientation="vertical" >
+            android:layout_weight="1.0" >
 
             <ImageView
                 android:id="@+id/personal_info_button"
-                android:layout_width="fill_parent"
-                android:layout_height="52dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_centerInParent="true"
                 android:src="@drawable/settings_icon" />
 
             <View
                 android:id="@+id/personal_highlighter"
                 android:layout_width="fill_parent"
                 android:layout_height="5dp"
+                android:layout_alignParentBottom="true"
                 android:background="@android:color/transparent" />
-        </LinearLayout>
+        </RelativeLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:layout_weight="1.0"
-            android:orientation="vertical" >
+            android:layout_weight="1.0" >
 
             <ImageView
                 android:id="@+id/bounces_button"
-                android:layout_width="fill_parent"
-                android:layout_height="52dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_centerInParent="true"
                 android:src="@drawable/home_icon" />
 
             <View
                 android:id="@+id/bounces_highlighter"
                 android:layout_width="fill_parent"
                 android:layout_height="5dp"
+                android:layout_alignParentBottom="true"
                 android:background="@android:color/transparent" />
-        </LinearLayout>
+        </RelativeLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:layout_weight="1.0"
-            android:orientation="vertical" >
+            android:layout_weight="1.0" >
 
             <ImageView
                 android:id="@+id/contacts_button"
-                android:layout_width="fill_parent"
-                android:layout_height="52dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_centerInParent="true"
                 android:src="@drawable/contacts_icon" />
 
             <View
                 android:id="@+id/contacts_highlighter"
                 android:layout_width="fill_parent"
                 android:layout_height="5dp"
+                android:layout_alignParentBottom="true"
                 android:background="@android:color/transparent" />
-        </LinearLayout>
+        </RelativeLayout>
     </LinearLayout>
 
     <android.support.v4.view.ViewPager

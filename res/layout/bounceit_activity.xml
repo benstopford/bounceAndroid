@@ -1,7 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@android:color/background_light" >
+    android:background="@color/lightgrey" >
 
     <LinearLayout
         android:id="@+id/created_bounce_view_layout"
@@ -11,7 +11,7 @@
         android:orientation="vertical" >
 
         <LinearLayout
-            android:id="@+id/created_bounce_view_layout"
+            android:id="@+id/created_bounce_view_layout_top"
             android:layout_width="fill_parent"
             android:layout_height="43dp"
             android:layout_alignParentTop="true"
@@ -33,7 +33,10 @@
                 android:layout_alignParentTop="true"
                 android:layout_marginLeft="54dp"
                 android:layout_weight="1"
-                android:lines="2" />
+                android:background="@drawable/edittext"
+                android:hint="question"
+                android:lines="2"
+                android:textAlignment="center" />
 
             <ImageButton
                 android:id="@+id/bounceit_button"
@@ -71,11 +74,10 @@
         android:layout_alignParentLeft="true"
         android:layout_alignTop="@id/camera_preview"
         android:background="@android:color/transparent"
-        android:scaleType="fitXY"
-        android:src="@drawable/flash_on_icon"
         android:onClick="onFlushClick"
-         />
-    
+        android:scaleType="fitXY"
+        android:src="@drawable/flash_on_icon" />
+
     <ImageButton
         android:id="@+id/change_back_and_front_icon"
         android:layout_width="54dp"
@@ -83,17 +85,18 @@
         android:layout_alignParentRight="true"
         android:layout_alignTop="@id/camera_preview"
         android:background="@android:color/transparent"
-        android:scaleType="fitXY"
-        android:src="@drawable/swap_camera_icon"
         android:onClick="onSwapCameraClick"
-         />
-    
-    <Button
+        android:scaleType="fitXY"
+        android:src="@drawable/swap_camera_icon" />
+
+    <ImageButton
         android:id="@+id/take_picture_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/transparent"
         android:onClick="onTakePictureClick"
-        android:text="take picture" />
+        android:src="@drawable/take_picture_icon" />
 
 </RelativeLayout>

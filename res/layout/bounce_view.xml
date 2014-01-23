@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@android:color/background_light"
     android:descendantFocusability="blocksDescendants" >
 
     <LinearLayout
@@ -12,11 +13,13 @@
 
         <ImageView
             android:id="@+id/sender_profile_image"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
             android:layout_weight="0" />
 
         <LinearLayout
+            android:id="@+id/question_timestamp_block"
             android:layout_width="0dp"
             android:layout_height="70dp"
             android:layout_weight="1"
@@ -25,29 +28,38 @@
             <TextView
                 android:id="@+id/question_textview"
                 android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_weight="0.7" />
+                android:layout_height="0dp"
+                android:layout_weight="0.7"
+                android:textColor="#555555"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/timestamp_textview"
                 android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_weight="0.3" />
+                android:layout_height="0dp"
+                android:layout_weight="0.3"
+                android:textColor="#999999"
+                android:textSize="10dp" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/seen_by_textview"
             android:layout_width="100dp"
-            android:layout_height="70dp"
-            android:layout_weight="0" />
+            android:layout_height="fill_parent"
+            android:paddingTop="15dp"
+            android:textColor="#999999"
+            android:textSize="12dp"
+            android:textStyle="italic" />
     </LinearLayout>
 
     <ImageButton
         android:id="@+id/delete_button"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:background="@android:color/transparent"
         android:scaleType="fitXY"
         android:src="@drawable/delete_icon" />
 

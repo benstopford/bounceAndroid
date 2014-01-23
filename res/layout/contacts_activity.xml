@@ -1,26 +1,48 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:background="@color/lightgrey" >
 
-    <Button
-        android:id="@+id/add_contact_button"
+    <LinearLayout
+        android:id="@+id/buttons"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="Add contacts" />
+        android:orientation="horizontal" >
 
-    <Button
-        android:id="@+id/invite_friends_button"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/add_contact_button"
-        android:onClick="onAddContactClick"
-        android:text="Invite Friends" />
+        <Button
+            android:id="@+id/invite_friends_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_weight="1.0"
+            android:background="@drawable/button_background"
+            android:onClick="onAddContactClick"
+            android:text="Invite Friends"
+            android:textColor="#E7ECE6" />
+
+        <Button
+            android:id="@+id/add_contact_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_weight="1.0"
+            android:background="@drawable/button_background"
+            android:text="Add contacts"
+            android:textColor="#E7ECE6" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/contact_list"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/invite_friends_button" />
+        android:layout_below="@id/buttons" />
+
+    <Button
+        android:id="@+id/bounceit_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/bounceit_icon" />
 
 </RelativeLayout>

@@ -1,33 +1,42 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_light"
     android:orientation="vertical"
     android:padding="10dip" >
 
-    <TextView
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Phone Number"
-        android:textColor="#372c24" >
-    </TextView>
+        android:orientation="vertical" >
 
-    <EditText
-        android:id="@+id/editPhoneNumber"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dip"
-        android:layout_marginTop="5dip"
-        android:stretchColumns="1"
-        android:text="+" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Phone Number"
+            android:textColor="#372c24" >
+        </TextView>
 
-    <Button
-        android:id="@+id/loginButton"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dip"
-        android:layout_weight="1"
-        android:onClick="onLoginButtonClick"
-        android:text="Proceed" />
+        <EditText
+            android:id="@+id/editPhoneNumber"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dip"
+            android:layout_marginTop="5dip"
+            android:background="@drawable/edittext"
+            android:stretchColumns="1"
+            android:text="+" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dip"
+            android:layout_weight="1"
+            android:background="@drawable/button_background"
+            android:onClick="onLoginButtonClick"
+            android:text="Proceed" />
+    </LinearLayout>
+
+</RelativeLayout>
