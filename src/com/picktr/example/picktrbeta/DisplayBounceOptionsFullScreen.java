@@ -24,12 +24,12 @@ public class DisplayBounceOptionsFullScreen extends Activity {
 		setContentView(R.layout.bounce_options_fullscreen);
 
 		Bundle extras = getIntent().getExtras();
-		String bounce_id = extras.getString("bounce_id");
+		Long bounce_id = extras.getLong("bounce_id");
 
 		Log.d(TAG, "bounce id is " + bounce_id);
 
 		Bounce bounce = DataHolder.getDataHolder(getApplicationContext())
-				.getBounceWithId(bounce_id);
+				.getBounceWithInternalId(bounce_id);
 		int position = extras.getInt("position", 0);
 
 		pager = (ViewPager) findViewById(R.id.pager);

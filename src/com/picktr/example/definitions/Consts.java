@@ -38,6 +38,7 @@ public interface Consts {
 	public static final String BOUNCE_STATUS_SENT = "sent";
 	public static final String BOUNCE_STATUS_RECEIVED = "received";
 	public static final String BOUNCE_STATUS_SENDING = "sending";
+	public static final String BOUNCE_STATUS_PENDING = "pending";
 	public static final String BOUNCE_STATUS_LOADING = "loading";
 
 	public static final String NEWS_CLASS_NAME = "News";

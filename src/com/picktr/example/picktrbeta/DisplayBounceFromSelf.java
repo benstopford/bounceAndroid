@@ -39,7 +39,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 
 	Bounce bounce;
 	DataHolder dataHolder;
-	String bounce_id;
+	long bounce_id;
 	ImageView senderProfileImage;
 	TextView questionTextview;
 	TextView timestampTextview;
@@ -55,10 +55,10 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.display_bounce_from_self);
 		Bundle extras = getIntent().getExtras();
-		bounce_id = extras.getString("bounce_id");
+		bounce_id = extras.getLong("bounce_id");
 
 		dataHolder = DataHolder.getDataHolder(getApplicationContext());
-		bounce = dataHolder.getBounceWithId(bounce_id);
+		bounce = dataHolder.getBounceWithInternalId(bounce_id);
 
 		dataHolder.registerBouncesListListener(this);
 		dataHolder.registerLikeListener(this);
@@ -112,21 +112,21 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 
 		likeButton.setVisibility(View.VISIBLE);
 		likeButton.setText(String.valueOf(dataHolder.getAllLikes(
-				bounce.getBounceId(), optionNumber).size()));
+				bounce.getQBID(), optionNumber).size()));
 
-		likeButton.setTag(R.string.bounce_id, bounce.getBounceId());
+		likeButton.setTag(R.string.bounce_id, bounce.getQBID());
 		likeButton.setTag(R.string.option_number, optionNumber);
 		likeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				int option = (Integer) v.getTag(R.string.option_number);
 				ArrayList<Like> likes = dataHolder.getAllLikes(
-						bounce.getBounceId(), option);
+						bounce.getQBID(), option);
 				showDialogForLikes(likes);
 				ToggleButton button = (ToggleButton) v;
 				button.setChecked(false);
 				button.setText(String.valueOf(dataHolder.getAllLikes(
-						bounce.getBounceId(), option).size()));
+						bounce.getQBID(), option).size()));
 			}
 		});
 	}
@@ -139,7 +139,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 					R.layout.bounce_option_view, null);
 			TextView optionText = (TextView) optionView
 					.findViewById(R.id.option_text);
-			optionText.setText(bounce.getOptionNames().get(i));
+			optionText.setText(bounce.getOptions().get(i).getTitle());
 
 			ImageView optionImage = (ImageView) optionView
 					.findViewById(R.id.option_image);
@@ -152,7 +152,8 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 			LayoutParams textParams = optionText.getLayoutParams();
 			textParams.width = Utils.getDisplaySize(this).x;
 			optionText.setLayoutParams(textParams);
-			Utils.displayImage(this, bounce.getContentAt(i), optionImage);
+			Utils.displayImage(bounce.getOptions().get(i).getImage(),
+					optionImage);
 
 			ToggleButton likeButton = (ToggleButton) optionView
 					.findViewById(R.id.option_like);
@@ -176,7 +177,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 
 	private void startFullScreen(int position) {
 		Intent i = new Intent(this, DisplayBounceOptionsFullScreen.class);
-		i.putExtra("bounce_id", bounce.getBounceId());
+		i.putExtra("bounce_id", bounce.getID());
 		i.putExtra("position", position);
 		this.startActivity(i);
 	}
@@ -208,7 +209,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 	}
 
 	private void applySeenBy() {
-		ArrayList<Seen> whoSaw = dataHolder.getAllSeenBy(bounce.getBounceId());
+		ArrayList<Seen> whoSaw = dataHolder.getAllSeenBy(bounce.getQBID());
 
 		String text = "Seen by ";
 		if (whoSaw.size() == 0) {
@@ -256,7 +257,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 			long id) {
 		Log.d(TAG, parent + ":" + view + ":" + position + ":" + id);
 		Intent i = new Intent(this, DisplayBounceOptionsFullScreen.class);
-		i.putExtra("bounce_id", bounce.getBounceId());
+		i.putExtra("bounce_id", bounce.getID());
 		i.putExtra("position", position);
 		this.startActivity(i);
 	}
@@ -266,7 +267,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				bounce = dataHolder.getBounceWithId(bounce_id);
+				bounce = dataHolder.getBounceWithInternalId(bounce_id);
 				setupBounce();
 			}
 		});
@@ -277,7 +278,7 @@ public class DisplayBounceFromSelf extends Activity implements LikeListener,
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				bounce = dataHolder.getBounceWithId(bounce_id);
+				bounce = dataHolder.getBounceWithInternalId(bounce_id);
 				setupBounce();
 			}
 		});

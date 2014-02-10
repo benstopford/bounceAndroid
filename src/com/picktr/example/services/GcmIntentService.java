@@ -17,7 +17,6 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.picktr.example.definitions.Consts;
-import com.picktr.example.helpers.DataHolder;
 import com.picktr.example.picktrbeta.BounceCloudActivity;
 import com.picktr.example.picktrbeta.R;
 
@@ -96,8 +95,6 @@ public class GcmIntentService extends IntentService {
 		String sender_login = null;
 		String message = null;
 		Integer option = 0;
-
-		DataHolder.getDataHolder(getApplicationContext()).updateNewsListeners();
 
 		intent = new Intent(this, BounceCloudActivity.class);
 

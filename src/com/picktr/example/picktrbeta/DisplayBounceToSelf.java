@@ -23,6 +23,7 @@ import com.picktr.example.helpers.DataHolder;
 import com.picktr.example.helpers.Utils;
 import com.picktr.example.interfaces.BouncesListListener;
 import com.picktr.example.interfaces.LikeListener;
+import com.picktr.example.services.NetworkService;
 
 public class DisplayBounceToSelf extends Activity implements
 		BouncesListListener, LikeListener {
@@ -31,7 +32,8 @@ public class DisplayBounceToSelf extends Activity implements
 
 	Bounce bounce;
 	DataHolder dataHolder;
-	String bounce_id;
+	NetworkService networkService;
+	long bounce_id;
 	ImageView senderProfileImage;
 	TextView questionTextview;
 	TextView timestampTextview;
@@ -48,9 +50,11 @@ public class DisplayBounceToSelf extends Activity implements
 		setContentView(R.layout.display_bounce_to_self);
 
 		Bundle extras = getIntent().getExtras();
-		bounce_id = extras.getString("bounce_id");
+		bounce_id = extras.getLong("bounce_id");
 		dataHolder = DataHolder.getDataHolder(getApplicationContext());
-		bounce = dataHolder.getBounceWithId(bounce_id);
+		networkService = ((PicktrApplication) getApplication()).networkService;
+
+		bounce = dataHolder.getBounceWithInternalId(bounce_id);
 
 		dataHolder.registerBouncesListListener(this);
 		dataHolder.registerLikeListener(this);
@@ -80,19 +84,19 @@ public class DisplayBounceToSelf extends Activity implements
 
 	private void applyLikeButton(ToggleButton likeButton, int optionNumber) {
 		likeButton.setVisibility(View.VISIBLE);
-		if (dataHolder.getIsLikedBySelf(bounce.getBounceId(), optionNumber)) {
+		if (dataHolder.getIsLikedBySelf(bounce.getQBID(), optionNumber)) {
 			likeButton.setChecked(true);
 		} else {
 			likeButton.setChecked(false);
 		}
-		likeButton.setTag(R.string.bounce_id, bounce.getBounceId());
+		likeButton.setTag(R.string.bounce_id, bounce.getQBID());
 		likeButton.setTag(R.string.option_number, optionNumber);
 		likeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				int option = (Integer) v.getTag(R.string.option_number);
-				dataHolder.sendLike(bounce, option);
+				networkService.sendLike(bounce, option);
 			}
 		});
 	}
@@ -105,7 +109,7 @@ public class DisplayBounceToSelf extends Activity implements
 					R.layout.bounce_option_view, null);
 			TextView optionText = (TextView) optionView
 					.findViewById(R.id.option_text);
-			optionText.setText(bounce.getOptionNames().get(i));
+			optionText.setText(bounce.getOptions().get(i).getTitle());
 
 			ImageView optionImage = (ImageView) optionView
 					.findViewById(R.id.option_image);
@@ -118,7 +122,8 @@ public class DisplayBounceToSelf extends Activity implements
 			LayoutParams textParams = optionText.getLayoutParams();
 			textParams.width = Utils.getDisplaySize(this).x;
 			optionText.setLayoutParams(textParams);
-			Utils.displayImage(this, bounce.getContentAt(i), optionImage);
+			Utils.displayImage(bounce.getOptions().get(i).getImage(),
+					optionImage);
 
 			ToggleButton likeButton = (ToggleButton) optionView
 					.findViewById(R.id.option_like);
@@ -142,7 +147,7 @@ public class DisplayBounceToSelf extends Activity implements
 
 	private void startFullScreen(int position) {
 		Intent i = new Intent(this, DisplayBounceOptionsFullScreen.class);
-		i.putExtra("bounce_id", bounce.getBounceId());
+		i.putExtra("bounce_id", bounce.getID());
 		i.putExtra("position", position);
 		this.startActivity(i);
 	}
@@ -200,7 +205,7 @@ public class DisplayBounceToSelf extends Activity implements
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				bounce = dataHolder.getBounceWithId(bounce_id);
+				bounce = dataHolder.getBounceWithInternalId(bounce_id);
 				setupBounce();
 			}
 		});

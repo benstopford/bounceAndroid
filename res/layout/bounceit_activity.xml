@@ -15,37 +15,40 @@
             android:layout_width="fill_parent"
             android:layout_height="43dp"
             android:layout_alignParentTop="true"
+            android:focusableInTouchMode="true"
             android:orientation="horizontal" >
 
-            <ImageButton
+            <Button
                 android:id="@+id/back_button"
-                android:layout_width="27dp"
+                android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
-                android:background="@android:color/transparent"
+                android:background="@drawable/button_background"
                 android:onClick="onBackButtonClick"
-                android:scaleType="fitXY"
-                android:src="@drawable/back_arrow" />
+                android:text="Back"
+                android:textColor="#E7ECE6" />
 
             <EditText
                 android:id="@+id/question"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_marginLeft="54dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
                 android:layout_weight="1"
                 android:background="@drawable/edittext"
+                android:gravity="center"
                 android:hint="question"
                 android:lines="2"
                 android:textAlignment="center" />
 
-            <ImageButton
+            <Button
                 android:id="@+id/bounceit_button"
-                android:layout_width="27dp"
+                android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
-                android:background="@android:color/transparent"
+                android:background="@drawable/button_background"
                 android:onClick="onSendButtonClick"
-                android:scaleType="fitXY"
-                android:src="@drawable/forward_arrow" />
+                android:text="Next"
+                android:textColor="#E7ECE6" />
         </LinearLayout>
 
         <HorizontalScrollView

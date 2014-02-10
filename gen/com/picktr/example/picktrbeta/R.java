@@ -241,17 +241,19 @@ containing a value of this type.
         public static final int no_photo_icon=0x7f020035;
         public static final int normal_button=0x7f020036;
         public static final int personal_tab_icon=0x7f020037;
-        public static final int picktr_icon=0x7f020038;
-        public static final int picktr_logo=0x7f020039;
-        public static final int red_button=0x7f02003a;
-        public static final int settings_icon=0x7f02003b;
-        public static final int settings_icon_active=0x7f02003c;
-        public static final int settings_icon_inactive=0x7f02003d;
-        public static final int swap_camera_icon=0x7f02003e;
-        public static final int tab_bar_background=0x7f02003f;
-        public static final int take_picture_icon=0x7f020040;
-        public static final int take_picture_normal=0x7f020041;
-        public static final int take_picture_pressed=0x7f020042;
+        public static final int picktr_app_logo_noshad=0x7f020038;
+        public static final int picktr_icon=0x7f020039;
+        public static final int picktr_launch=0x7f02003a;
+        public static final int picktr_logo=0x7f02003b;
+        public static final int red_button=0x7f02003c;
+        public static final int settings_icon=0x7f02003d;
+        public static final int settings_icon_active=0x7f02003e;
+        public static final int settings_icon_inactive=0x7f02003f;
+        public static final int swap_camera_icon=0x7f020040;
+        public static final int tab_bar_background=0x7f020041;
+        public static final int take_picture_icon=0x7f020042;
+        public static final int take_picture_normal=0x7f020043;
+        public static final int take_picture_pressed=0x7f020044;
     }
     public static final class id {
         public static final int action_settings=0x7f060043;

@@ -1,6 +1,5 @@
 package com.picktr.example.helpers;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
@@ -8,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +17,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -29,6 +28,7 @@ import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.picktr.example.definitions.Consts;
 import com.picktr.example.picktrbeta.R;
+import com.picktr.example.services.NetworkService;
 
 public class BouncesListAdapter extends BaseAdapter {
 
@@ -38,13 +38,16 @@ public class BouncesListAdapter extends BaseAdapter {
 	ArrayList<Bounce> bounces;
 	DataHolder dataHolder;
 	ImageLoader imageLoader;
+	NetworkService networkService;
 
-	public BouncesListAdapter(Context ctx, ArrayList<Bounce> bounces) {
+	public BouncesListAdapter(Context ctx, ArrayList<Bounce> bounces,
+			NetworkService networkService) {
 		this.layoutInflater = (LayoutInflater) ctx
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		this.ctx = ctx;
 		this.bounces = bounces;
 		this.dataHolder = DataHolder.getDataHolder(ctx);
+		this.networkService = networkService;
 		setupImageLoader();
 	}
 
@@ -68,59 +71,87 @@ public class BouncesListAdapter extends BaseAdapter {
 		return 0;
 	}
 
+	private void setupOptionsFirstTime(BounceViewHolder viewHolder) {
+		viewHolder.options = new BounceOptionHolder[5];
+
+		for (int i = 0; i < 5; i++) {
+			BounceOptionHolder optionHolder = new BounceOptionHolder();
+			viewHolder.options[i] = optionHolder;
+
+			optionHolder.optionLayout = (RelativeLayout) layoutInflater
+					.inflate(R.layout.bounce_option_view, null);
+			optionHolder.optionImage = (ImageView) optionHolder.optionLayout
+					.findViewById(R.id.option_image);
+			optionHolder.optionText = (TextView) optionHolder.optionLayout
+					.findViewById(R.id.option_text);
+			optionHolder.optionLike = (ToggleButton) optionHolder.optionLayout
+					.findViewById(R.id.option_like);
+
+			LayoutParams imageParams = optionHolder.optionImage
+					.getLayoutParams();
+			imageParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
+			imageParams.height = Utils.getDisplaySize(ctx).x / 2 - 50;
+			optionHolder.optionImage.setLayoutParams(imageParams);
+
+			LayoutParams textParams = optionHolder.optionText.getLayoutParams();
+			textParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
+			optionHolder.optionText.setLayoutParams(textParams);
+
+			viewHolder.optionsLinearLayout.addView(optionHolder.optionLayout);
+		}
+	}
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ViewHolder viewHolder;
+		BounceViewHolder viewHolder;
 		if (convertView == null) {
 			convertView = layoutInflater.inflate(R.layout.bounce_view, null);
-			viewHolder = new ViewHolder();
+
+			viewHolder = new BounceViewHolder();
 			viewHolder.question = (TextView) convertView
 					.findViewById(R.id.question_textview);
 			viewHolder.timestamp = (TextView) convertView
 					.findViewById(R.id.timestamp_textview);
-			viewHolder.optionsLayout = (LinearLayout) convertView
-					.findViewById(R.id.options_linear_layout);
 			viewHolder.profileImage = (ImageView) convertView
 					.findViewById(R.id.sender_profile_image);
-			viewHolder.deleteButton = (ImageButton) convertView
-					.findViewById(R.id.delete_button);
 			viewHolder.seenBy = (TextView) convertView
 					.findViewById(R.id.seen_by_textview);
+			viewHolder.deleteButton = (ImageButton) convertView
+					.findViewById(R.id.delete_button);
 			viewHolder.topBar = (LinearLayout) convertView
 					.findViewById(R.id.top_bar);
+			viewHolder.optionsLinearLayout = (LinearLayout) convertView
+					.findViewById(R.id.options_linear_layout);
+			viewHolder.questionTimestampBlock = (LinearLayout) convertView
+					.findViewById(R.id.question_timestamp_block);
+			setupOptionsFirstTime(viewHolder);
 			convertView.setTag(viewHolder);
 		} else {
-			viewHolder = (ViewHolder) convertView.getTag();
+			viewHolder = (BounceViewHolder) convertView.getTag();
 		}
 		applyQuestion(viewHolder.question, position);
 		applyTimestamp(viewHolder.timestamp, position);
-		applyOptions(viewHolder.optionsLayout, position);
+		applyOptions(viewHolder, position);
 		applySenderProfileImage(viewHolder.profileImage, position);
 		applyDeleteButton(viewHolder.deleteButton, position);
 		applyIsSeenBy(viewHolder.seenBy, position);
-		applyTopBar(viewHolder.topBar, position);
+		applyTopBar(viewHolder, position);
 		return convertView;
 	}
 
-	private void applyTopBar(LinearLayout topBar, int position) {
+	private void applyTopBar(BounceViewHolder viewHolder, int position) {
 		Bounce bounce = bounces.get(position);
-		ImageView senderImage = (ImageView) topBar
-				.findViewById(R.id.sender_profile_image);
-		LinearLayout questionBlock = (LinearLayout) topBar
-				.findViewById(R.id.question_timestamp_block);
-		TextView seenByTextView = (TextView) topBar
-				.findViewById(R.id.seen_by_textview);
 
 		if (bounce.isDraft() || bounce.isFromSelf()) {
-			topBar.removeAllViews();
-			topBar.addView(seenByTextView);
-			topBar.addView(questionBlock);
-			topBar.addView(senderImage);
+			viewHolder.topBar.removeAllViews();
+			viewHolder.topBar.addView(viewHolder.seenBy);
+			viewHolder.topBar.addView(viewHolder.questionTimestampBlock);
+			viewHolder.topBar.addView(viewHolder.profileImage);
 		} else {
-			topBar.removeAllViews();
-			topBar.addView(senderImage);
-			topBar.addView(questionBlock);
-			topBar.addView(seenByTextView);
+			viewHolder.topBar.removeAllViews();
+			viewHolder.topBar.addView(viewHolder.profileImage);
+			viewHolder.topBar.addView(viewHolder.questionTimestampBlock);
+			viewHolder.topBar.addView(viewHolder.seenBy);
 		}
 	}
 
@@ -132,7 +163,7 @@ public class BouncesListAdapter extends BaseAdapter {
 			// First time we see a bounce!
 			bounce.setIsSeen(1); // 1 - for true
 			dataHolder.updateBounce(bounce);
-			dataHolder.sendIsSeenMessage(bounce);
+			networkService.sendIsSeenMessage(bounce);
 		}
 
 		String text = "";
@@ -142,8 +173,7 @@ public class BouncesListAdapter extends BaseAdapter {
 				|| bounce.getStatus().equals(Consts.BOUNCE_STATUS_SENDING)) {
 			text = "";
 		} else if (bounce.isFromSelf()) {
-			ArrayList<Seen> whoSaw = dataHolder.getAllSeenBy(bounce
-					.getBounceId());
+			ArrayList<Seen> whoSaw = dataHolder.getAllSeenBy(bounce.getQBID());
 			text = "Seen by ";
 			ArrayList<String> names = new ArrayList<String>();
 			for (int i = 0; i < whoSaw.size(); i++) {
@@ -179,7 +209,6 @@ public class BouncesListAdapter extends BaseAdapter {
 	}
 
 	private void applyQuestion(TextView question, int position) {
-		question.clearComposingText();
 		question.setText("");
 		if (bounces.get(position).getQuestion() != null) {
 			String text = bounces.get(position).getQuestion();
@@ -191,7 +220,6 @@ public class BouncesListAdapter extends BaseAdapter {
 	}
 
 	private void applyTimestamp(TextView timestamp, int position) {
-		timestamp.clearComposingText();
 		timestamp.setText("");
 
 		Bounce bounce = bounces.get(position);
@@ -207,6 +235,8 @@ public class BouncesListAdapter extends BaseAdapter {
 			text = "Sent " + Utils.getTimeAgo(bounce.getSendAt(), ctx);
 		} else if (bounce.getStatus().equals(Consts.BOUNCE_STATUS_RECEIVED)) {
 			text = "Received " + Utils.getTimeAgo(bounce.getSendAt(), ctx);
+		} else if (bounce.getStatus().equals(Consts.BOUNCE_STATUS_PENDING)) {
+			text = "Pending...";
 		}
 
 		timestamp.setText(text);
@@ -285,15 +315,15 @@ public class BouncesListAdapter extends BaseAdapter {
 			likeButton.setChecked(false);
 			likeButton.setClickable(false);
 			likeButton.setText(String.valueOf(dataHolder.getAllLikes(
-					bounce.getBounceId(), optionNumber).size()));
+					bounce.getQBID(), optionNumber).size()));
 		} else {
-			if (dataHolder.getIsLikedBySelf(bounce.getBounceId(), optionNumber)) {
+			if (dataHolder.getIsLikedBySelf(bounce.getQBID(), optionNumber)) {
 				likeButton.setChecked(true);
 			} else {
 				likeButton.setChecked(false);
 			}
 
-			likeButton.setTag(R.string.bounce_id, bounce.getBounceId());
+			likeButton.setTag(R.string.bounce_id, bounce.getQBID());
 			likeButton.setTag(R.string.option_number, optionNumber);
 
 			likeButton.setOnClickListener(new OnClickListener() {
@@ -304,7 +334,7 @@ public class BouncesListAdapter extends BaseAdapter {
 					String bounce_id = (String) v.getTag(R.string.bounce_id);
 					Bounce bounce = dataHolder.getBounceWithId(bounce_id);
 					int option = (Integer) v.getTag(R.string.option_number);
-					dataHolder.sendLike(bounce, option);
+					networkService.sendLike(bounce, option);
 				}
 			});
 
@@ -325,94 +355,63 @@ public class BouncesListAdapter extends BaseAdapter {
 
 	}
 
-	private void displayImage(String imageURI, ImageView image, Bounce bounce) {
-		if (imageURI == null)
-			return;
-		File file = new File(imageURI);
-		// imageLoader.displayImage(Uri.fromFile(file).toString(), image);
-
-		Contact user;
-		if (bounce.isFromSelf()) {
-			user = dataHolder.getSelf();
-		} else {
-			user = dataHolder.getContactWithUserId(bounce.getSender());
-		}
-		if (user != null && user.getProfileImage() != null) {
-			// Log.d(TAG, "setting profile Image");
-			// Bitmap bmp =
-			// BitmapFactory.decodeByteArray(user.getProfileImage(),
-			// 0, user.getProfileImage().length);
-			// image.setImageBitmap(Utils.createRoundImage(bmp));
-		} else {
-			// Log.e(TAG, "user is " + user.getID() + " and profile image is "
-			// + user.getProfileImage());
-		}
-
-	}
-
-	private void applyOptions(LinearLayout optionsView, int position) {
+	private void applyOptions(BounceViewHolder viewHolder, int position) {
 		Bounce bounce = bounces.get(position);
-		optionsView.removeAllViews();
+		Log.d(TAG, "Bounce is " + bounce + " #:" + bounce.getNumberOfOptions());
 
-		for (int i = 0; i < bounce.getNumberOfOptions(); i++) {
-			View optionView = layoutInflater.inflate(
-					R.layout.bounce_option_view, null);
-			TextView optionText = (TextView) optionView
-					.findViewById(R.id.option_text);
-			optionText.setText(bounce.getOptionNames().get(i));
+		for (int i = 0; i < bounce.getOptions().size(); i++) {
+			Utils.displayImage(bounce.getOptions().get(i).getImage(),
+					viewHolder.options[i].optionImage);
+			applyLikeButton(viewHolder.options[i].optionLike, bounce, i);
+			viewHolder.options[i].optionText.setText(bounce.getOptions().get(i)
+					.getTitle());
+			viewHolder.options[i].optionImage.setTag(R.string.bounce_id,
+					bounce.getID());
+			viewHolder.options[i].optionImage.setTag(R.string.option_number, i);
+			viewHolder.options[i].optionImage
+					.setOnClickListener(new OnClickListener() {
 
-			ImageView optionImage = (ImageView) optionView
-					.findViewById(R.id.option_image);
+						@Override
+						public void onClick(View v) {
+							// TODO Auto-generated method stub
+							long bounceID = (Long) v.getTag(R.string.bounce_id);
+							Bounce bounce = dataHolder
+									.getBounceWithInternalId(bounceID);
+							if (bounce == null) {
+								Log.e(TAG, "bounce is null!!!");
+								return;
+							}
 
-			LayoutParams imageParams = optionImage.getLayoutParams();
-			imageParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
-			imageParams.height = Utils.getDisplaySize(ctx).x / 2 - 50;
-			optionImage.setLayoutParams(imageParams);
+							int option = (Integer) v
+									.getTag(R.string.option_number);
+							Utils.startBounceActivity(ctx, bounce, option);
+						}
+					});
+			viewHolder.options[i].optionLayout.setVisibility(View.VISIBLE);
+		}
 
-			LayoutParams textParams = optionText.getLayoutParams();
-			textParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
-			optionText.setLayoutParams(textParams);
-
-			// Utils.displayImage(ctx, bounce.getContentAt(i), optionImage);
-			displayImage(bounce.getContentAt(i), optionImage, bounce);
-
-			ToggleButton likeButton = (ToggleButton) optionView
-					.findViewById(R.id.option_like);
-			applyLikeButton(likeButton, bounce, i);
-
-			optionImage.setTag(R.string.bounce_id, bounce.getID());
-			optionImage.setTag(R.string.option_number, i);
-
-			optionImage.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View v) {
-					// TODO Auto-generated method stub
-					long bounceID = (Long) v.getTag(R.string.bounce_id);
-					Bounce bounce = dataHolder
-							.getBounceWithInternalId(bounceID);
-					if (bounce == null) {
-						Log.e(TAG, "bounce is null!!!");
-						return;
-					}
-
-					int option = (Integer) v.getTag(R.string.option_number);
-					Utils.startBounceActivity(ctx, bounce, option);
-				}
-			});
-
-			optionsView.addView(optionView);
+		for (int i = bounce.getNumberOfOptions(); i < 5; i++) {
+			viewHolder.options[i].optionLayout.setVisibility(View.GONE);
 		}
 	}
 
-	static class ViewHolder {
+	static class BounceViewHolder {
 		TextView question;
 		TextView timestamp;
 		TextView seenBy;
-		LinearLayout optionsLayout;
 		ImageView profileImage;
 		ImageButton deleteButton;
 		LinearLayout topBar;
+		LinearLayout optionsLinearLayout;
+		LinearLayout questionTimestampBlock;
+		BounceOptionHolder[] options;
+	}
+
+	static class BounceOptionHolder {
+		ImageView optionImage;
+		TextView optionText;
+		ToggleButton optionLike;
+		RelativeLayout optionLayout;
 	}
 
 }

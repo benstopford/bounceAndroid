@@ -3,16 +3,14 @@
     android:layout_height="fill_parent"
     android:background="@android:color/background_light" >
 
-    <ImageButton
+    <Button
         android:id="@+id/send_button"
-        android:layout_width="27dp"
+        android:layout_width="wrap_content"
         android:layout_height="43dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:background="@android:color/transparent"
+        android:background="@drawable/button_background"
         android:onClick="onSendButtonClick"
-        android:scaleType="fitXY"
-        android:src="@drawable/forward_arrow"
         android:text="Send" />
 
     <TextView

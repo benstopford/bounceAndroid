@@ -1,9 +1,7 @@
 package com.picktr.example.helpers;
 
 import static com.picktr.example.helpers.Utils.convertArrayOfIntsToString;
-import static com.picktr.example.helpers.Utils.convertArrayOfStringToString;
 import static com.picktr.example.helpers.Utils.convertStringToArrayOfInt;
-import static com.picktr.example.helpers.Utils.convertStringToArrayOfString;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,7 +19,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String TAG = "DatabaseHandler";
 
 	// Database Version
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 5;
 
 	// Database Name
 	private static final String DATABASE_NAME = "databaseManager";
@@ -30,6 +28,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String TABLE_CONTACTS = "contacts";
 	private static final String TABLE_BOUNCES = "bounces";
 	private static final String TABLE_PERSONAL = "personal";
+	private static final String TABLE_OPTIONS = "options";
 	private static final String TABLE_SEEN = "seen";
 	private static final String TABLE_NEWS = "news";
 	private static final String TABLE_LIKES = "likes";
@@ -64,18 +63,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// Bounces Table Columns names
 	private static final String BOUNCES_KEY_ID = "id";
-	private static final String BOUNCES_KEY_BOUNCE_ID = "bounce_id";
+	private static final String BOUNCES_KEY_QBID = "qbid";
 	private static final String BOUNCES_KEY_SENDER_ID = "sender_id";
-	private static final String BOUNCES_KEY_NUMBER_OF_OPTIONS = "number_of_options";
-	private static final String BOUNCES_KEY_TYPES = "types";
-	private static final String BOUNCES_KEY_CONTENTS = "contents";
-	private static final String BOUNCES_KEY_RECEIVERS = "receivers";
-	private static final String BOUNCES_KEY_ISFROMSELF = "is_from_self";
 	private static final String BOUNCES_KEY_QUESTION = "question";
-	private static final String BOUNCES_KEY_OPTION_TITLES = "option_titles";
-	private static final String BOUNCES_KEY_SEND_AT = "send_at";
+	private static final String BOUNCES_KEY_NUMBER_OF_OPTIONS = "number_of_options";
 	private static final String BOUNCES_KEY_STATUS = "status";
 	private static final String BOUNCES_KEY_ISSEEN = "is_seen";
+	private static final String BOUNCES_KEY_ISFROMSELF = "is_from_self";
+	private static final String BOUNCES_KEY_RECEIVERS = "receivers";
+	private static final String BOUNCES_KEY_SEND_AT = "send_at";
+
+	private static final String OPTION_KEY_ID = "id";
+	private static final String OPTION_BOUNCE_DB_ID = "bounce_db_id";
+	private static final String OPTION_OPTION_NUMBER = "option_number";
+	private static final String OPTION_TYPE = "option_type";
+	private static final String OPTION_IMAGE = "option_image";
+	private static final String OPTION_TITLE = "option_title";
 
 	private static final String LIKES_KEY_ID = "id";
 	private static final String LIKES_KEY_BOUNCE_ID = "bounce_id";
@@ -110,16 +113,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		db.execSQL(CREATE_PERSONAL_TABLE);
 
 		String CREATE_BOUNCES_TABLE = "CREATE TABLE " + TABLE_BOUNCES + "("
-				+ BOUNCES_KEY_ID + " INTEGER PRIMARY KEY,"
-				+ BOUNCES_KEY_BOUNCE_ID + " TEXT," + BOUNCES_KEY_SENDER_ID
-				+ " INTEGER," + BOUNCES_KEY_NUMBER_OF_OPTIONS + " INTEGER,"
-				+ BOUNCES_KEY_TYPES + " TEXT," + BOUNCES_KEY_CONTENTS
-				+ " TEXT," + BOUNCES_KEY_RECEIVERS + " TEXT,"
-				+ BOUNCES_KEY_ISFROMSELF + " INTEGER," + BOUNCES_KEY_QUESTION
-				+ " TEXT," + BOUNCES_KEY_OPTION_TITLES + " TEXT,"
-				+ BOUNCES_KEY_SEND_AT + " INTEGER," + BOUNCES_KEY_STATUS
-				+ " TEXT," + BOUNCES_KEY_ISSEEN + " INTEGER" + ")";
+				+ BOUNCES_KEY_ID + " INTEGER PRIMARY KEY," + BOUNCES_KEY_QBID
+				+ " TEXT," + BOUNCES_KEY_SENDER_ID + " INTEGER,"
+				+ BOUNCES_KEY_QUESTION + " TEXT,"
+				+ BOUNCES_KEY_NUMBER_OF_OPTIONS + " INTEGER,"
+				+ BOUNCES_KEY_STATUS + " TEXT," + BOUNCES_KEY_ISSEEN
+				+ " INTEGER," + BOUNCES_KEY_ISFROMSELF + " INTEGER,"
+				+ BOUNCES_KEY_RECEIVERS + " TEXT," + BOUNCES_KEY_SEND_AT
+				+ " INTEGER" + ")";
 		db.execSQL(CREATE_BOUNCES_TABLE);
+
+		String CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_OPTIONS + "("
+				+ OPTION_KEY_ID + " INTEGER PRIMARY KEY," + OPTION_BOUNCE_DB_ID
+				+ " INTEGER," + OPTION_OPTION_NUMBER + " INTEGER,"
+				+ OPTION_TYPE + " INTEGER," + OPTION_TITLE + " TEXT,"
+				+ OPTION_IMAGE + " BLOB" + ")";
+		db.execSQL(CREATE_OPTIONS_TABLE);
 
 		String CREATE_SEEN_TABLE = "CREATE TABLE " + TABLE_SEEN + "("
 				+ SEEN_KEY_ID + " INTEGER PRIMARY KEY," + SEEN_KEY_BOUNCE_ID
@@ -137,9 +146,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ LIKES_KEY_ID + " INTEGER PRIMARY KEY," + LIKES_KEY_BOUNCE_ID
 				+ " TEXT," + LIKES_KEY_SENDER_ID + " INTEGER,"
 				+ LIKES_KEY_OPTION_NUMBER + " INTEGER" + ")";
-
 		db.execSQL(CREATE_LIKES_TABLE);
-
 	}
 
 	// Upgrading database
@@ -147,16 +154,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS);
-		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOUNCES);
-		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_PERSONAL);
-		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SEEN);
-		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_NEWS);
-		// Drop older table if existed
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_LIKES);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_OPTIONS);
 		// Create tables again
 		onCreate(db);
 	}
@@ -352,175 +355,171 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		// db.close();
 	}
 
+	long addOption(BounceOption optionImage) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		ContentValues values = new ContentValues();
+		values.put(OPTION_BOUNCE_DB_ID, optionImage.getBounceID());
+		values.put(OPTION_OPTION_NUMBER, optionImage.getOptionNumber());
+		values.put(OPTION_TYPE, optionImage.getType());
+		values.put(OPTION_TITLE, optionImage.getTitle());
+		values.put(OPTION_IMAGE, optionImage.getImage());
+		long res = db.insert(TABLE_OPTIONS, null, values);
+		return res;
+	}
+
+	BounceOption getOption(long id) {
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.query(TABLE_OPTIONS, new String[] { OPTION_KEY_ID,
+				OPTION_BOUNCE_DB_ID, OPTION_OPTION_NUMBER, OPTION_TYPE,
+				OPTION_TITLE, OPTION_IMAGE }, OPTION_KEY_ID + "=?",
+				new String[] { String.valueOf(id) }, null, null, null, null);
+		if (cursor == null)
+			return null;
+
+		if (cursor != null)
+			cursor.moveToFirst();
+
+		BounceOption optionImage = new BounceOption(cursor.getLong(0),
+				cursor.getLong(1), cursor.getInt(2), cursor.getInt(3),
+				cursor.getString(4), cursor.getBlob(5));
+		cursor.close();
+		return optionImage;
+	}
+
+	public void deleteOption(long id) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		db.delete(TABLE_OPTIONS, OPTION_KEY_ID + " = ?",
+				new String[] { String.valueOf(id) });
+	}
+
+	public ArrayList<BounceOption> getOptions(long bounce_id) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		ArrayList<BounceOption> res = new ArrayList<BounceOption>();
+		String selectQuery = "SELECT  * FROM " + TABLE_OPTIONS + " WHERE "
+				+ OPTION_BOUNCE_DB_ID + " = " + "\"" + bounce_id + "\""
+				+ " ORDER BY " + OPTION_OPTION_NUMBER + " ASC";
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		if (cursor == null)
+			return res;
+		if (cursor.moveToFirst()) {
+			do {
+				BounceOption optionImage = new BounceOption(cursor.getLong(0),
+						cursor.getLong(1), cursor.getInt(2), cursor.getInt(3),
+						cursor.getString(4), cursor.getBlob(5));
+				res.add(optionImage);
+			} while (cursor.moveToNext());
+		}
+		return res;
+	}
+
+	void updateOptions(Bounce bounce) {
+
+		ArrayList<BounceOption> options = getOptions(bounce.getID());
+		for (int i = 0; i < options.size(); i++) {
+			deleteOption(options.get(i).getID());
+		}
+		if (bounce.getOptions() == null)
+			return;
+		for (int i = 0; i < bounce.getOptions().size(); i++) {
+			bounce.getOptions().get(i).setBounceID(bounce.getID());
+			addOption(bounce.getOptions().get(i));
+		}
+
+	}
+
+	ContentValues putContentValues(Bounce bounce) {
+		ContentValues values = new ContentValues();
+		values.put(BOUNCES_KEY_QBID, bounce.getQBID());
+		values.put(BOUNCES_KEY_SENDER_ID, bounce.getSender());
+		values.put(BOUNCES_KEY_QUESTION, bounce.getQuestion());
+		values.put(BOUNCES_KEY_NUMBER_OF_OPTIONS, bounce.getNumberOfOptions());
+		values.put(BOUNCES_KEY_STATUS, bounce.getStatus());
+		values.put(BOUNCES_KEY_ISSEEN, bounce.getIsSeen());
+		values.put(BOUNCES_KEY_ISFROMSELF, bounce.getIsFromSelf());
+		values.put(BOUNCES_KEY_RECEIVERS,
+				convertArrayOfIntsToString(bounce.getReceivers()));
+		values.put(BOUNCES_KEY_SEND_AT, bounce.getSendAt().getTime());
+		return values;
+	}
+
 	// Adding new bounce
 	long addBounce(Bounce bounce) {
 		SQLiteDatabase db = this.getWritableDatabase();
-
-		ContentValues values = new ContentValues();
-		values.put(BOUNCES_KEY_BOUNCE_ID, bounce.getBounceId());
-		values.put(BOUNCES_KEY_SENDER_ID, bounce.getSender());
-		values.put(BOUNCES_KEY_NUMBER_OF_OPTIONS, bounce.getNumberOfOptions());
-		values.put(BOUNCES_KEY_TYPES,
-				convertArrayOfIntsToString(bounce.getTypes()));
-		values.put(BOUNCES_KEY_CONTENTS,
-				convertArrayOfStringToString(bounce.getContents()));
-		values.put(BOUNCES_KEY_RECEIVERS,
-				convertArrayOfIntsToString(bounce.getReceivers()));
-		values.put(BOUNCES_KEY_ISFROMSELF, bounce.getIsFromSelf());
-		values.put(BOUNCES_KEY_QUESTION, bounce.getQuestion());
-		values.put(BOUNCES_KEY_OPTION_TITLES,
-				convertArrayOfStringToString(bounce.getOptionNames()));
-
-		values.put(BOUNCES_KEY_SEND_AT, bounce.getSendAt().getTime());
-		values.put(BOUNCES_KEY_STATUS, bounce.getStatus());
-		values.put(BOUNCES_KEY_ISSEEN, bounce.getIsSeen());
-
-		// Inserting Row
-		long res = db.insert(TABLE_BOUNCES, null, values);
-		// db.close(); // Closing database connection
+		long res = db.insert(TABLE_BOUNCES, null, putContentValues(bounce));
+		bounce.setID(res);
+		updateOptions(bounce);
 		return res;
+	}
+
+	Bounce bounceFromCursor(Cursor cursor) {
+		ArrayList<BounceOption> options = getOptions(cursor.getLong(0));
+		Bounce bounce = new Bounce(cursor.getLong(0), cursor.getString(1),
+				cursor.getInt(2), cursor.getString(3), cursor.getInt(4),
+				options, cursor.getString(5), cursor.getInt(6),
+				cursor.getInt(7),
+				convertStringToArrayOfInt(cursor.getString(8)), new Date(
+						cursor.getLong(9)));
+		return bounce;
 	}
 
 	// Getting single bounce
 	Bounce getBounce(long id) {
 		SQLiteDatabase db = this.getReadableDatabase();
-
 		Cursor cursor = db.query(TABLE_BOUNCES, new String[] { BOUNCES_KEY_ID,
-				BOUNCES_KEY_BOUNCE_ID, BOUNCES_KEY_SENDER_ID,
-				BOUNCES_KEY_NUMBER_OF_OPTIONS, BOUNCES_KEY_TYPES,
-				BOUNCES_KEY_CONTENTS, BOUNCES_KEY_RECEIVERS,
-				BOUNCES_KEY_ISFROMSELF, BOUNCES_KEY_QUESTION,
-				BOUNCES_KEY_OPTION_TITLES, BOUNCES_KEY_SEND_AT,
-				BOUNCES_KEY_STATUS, BOUNCES_KEY_ISSEEN },
-				BOUNCES_KEY_ID + "=?", new String[] { String.valueOf(id) },
-				null, null, null, null);
+				BOUNCES_KEY_QBID, BOUNCES_KEY_SENDER_ID, BOUNCES_KEY_QUESTION,
+				BOUNCES_KEY_NUMBER_OF_OPTIONS, BOUNCES_KEY_STATUS,
+				BOUNCES_KEY_ISSEEN, BOUNCES_KEY_ISFROMSELF,
+				BOUNCES_KEY_RECEIVERS, BOUNCES_KEY_SEND_AT }, BOUNCES_KEY_ID
+				+ "=?", new String[] { String.valueOf(id) }, null, null, null,
+				null);
 		if (cursor == null)
 			return null;
-
 		if (cursor != null)
 			cursor.moveToFirst();
-
-		Log.d(TAG, "getting bounce with id : " + id + " and cursor.size = "
-				+ cursor.getCount());
-
-		Bounce bounce = new Bounce(cursor.getInt(2),// sender_id
-				cursor.getInt(3),// number of options
-				convertStringToArrayOfInt(cursor.getString(4)), // types
-				convertStringToArrayOfString(cursor.getString(5)), // contents
-				convertStringToArrayOfInt(cursor.getString(6)), // receivers
-				cursor.getString(1), // bounce_id
-				cursor.getLong(0), // ID
-				cursor.getInt(7), // isFromSelf
-				cursor.getString(8), // question
-				convertStringToArrayOfString(cursor.getString(9)), // optionTitles
-				new Date(cursor.getLong(10)), // sentAt
-				cursor.getString(11), // status
-				cursor.getInt(12) // isSeen
-		);
-		// db.close();
+		Bounce bounce = bounceFromCursor(cursor);
 		cursor.close();
 		return bounce;
 	}
 
-	// Getting single bounce
 	Bounce getBounceWithBounceID(String bounceID) {
 		SQLiteDatabase db = this.getReadableDatabase();
-
 		Cursor cursor = db.query(TABLE_BOUNCES, new String[] { BOUNCES_KEY_ID,
-				BOUNCES_KEY_BOUNCE_ID, BOUNCES_KEY_SENDER_ID,
-				BOUNCES_KEY_NUMBER_OF_OPTIONS, BOUNCES_KEY_TYPES,
-				BOUNCES_KEY_CONTENTS, BOUNCES_KEY_RECEIVERS,
-				BOUNCES_KEY_ISFROMSELF, BOUNCES_KEY_QUESTION,
-				BOUNCES_KEY_OPTION_TITLES, BOUNCES_KEY_SEND_AT,
-				BOUNCES_KEY_STATUS, BOUNCES_KEY_ISSEEN }, BOUNCES_KEY_BOUNCE_ID
+				BOUNCES_KEY_QBID, BOUNCES_KEY_SENDER_ID, BOUNCES_KEY_QUESTION,
+				BOUNCES_KEY_NUMBER_OF_OPTIONS, BOUNCES_KEY_STATUS,
+				BOUNCES_KEY_ISSEEN, BOUNCES_KEY_ISFROMSELF,
+				BOUNCES_KEY_RECEIVERS, BOUNCES_KEY_SEND_AT }, BOUNCES_KEY_QBID
 				+ "=?", new String[] { bounceID }, null, null, null, null);
 		if (cursor == null)
 			return null;
-
 		if (cursor != null)
 			cursor.moveToFirst();
-
-		Bounce bounce = new Bounce(cursor.getInt(2),// sender_id
-				cursor.getInt(3),// number of options
-				convertStringToArrayOfInt(cursor.getString(4)), // types
-				convertStringToArrayOfString(cursor.getString(5)), // contents
-				convertStringToArrayOfInt(cursor.getString(6)), // receivers
-				cursor.getString(1), // bounce_id
-				cursor.getLong(0), // ID
-				cursor.getInt(7), // isFromSelf
-				cursor.getString(8), // question
-				convertStringToArrayOfString(cursor.getString(9)), // optionTitles
-				new Date(cursor.getLong(10)), // sentAt
-				cursor.getString(11), // status
-				cursor.getInt(12) // isSeen
-		);
+		Bounce bounce = bounceFromCursor(cursor);
 		cursor.close();
 		return bounce;
 	}
 
-	// Getting All Contacts
 	public ArrayList<Bounce> getAllBounces() {
 		ArrayList<Bounce> bounceList = new ArrayList<Bounce>();
-		// Select All Query
 		String selectQuery = "SELECT  * FROM " + TABLE_BOUNCES + " ORDER BY "
 				+ BOUNCES_KEY_SEND_AT + " DESC";
-
 		SQLiteDatabase db = this.getWritableDatabase();
 		Cursor cursor = db.rawQuery(selectQuery, null);
-
-		// looping through all rows and adding to list
 		if (cursor.moveToFirst()) {
 			do {
-				Bounce bounce = new Bounce(cursor.getInt(2),// sender_id
-						cursor.getInt(3),// number of options
-						convertStringToArrayOfInt(cursor.getString(4)), // types
-						convertStringToArrayOfString(cursor.getString(5)), // contents
-						convertStringToArrayOfInt(cursor.getString(6)), // receivers
-						cursor.getString(1), // bounce_id
-						cursor.getLong(0), // ID
-						cursor.getInt(7), // isFromSelf
-						cursor.getString(8), // question
-						convertStringToArrayOfString(cursor.getString(9)), // OptionTitles
-						new Date(cursor.getLong(10)), // sentAt
-						cursor.getString(11), // status
-						cursor.getInt(12) // isSeen
-				);
+				Bounce bounce = bounceFromCursor(cursor);
 				bounceList.add(bounce);
 			} while (cursor.moveToNext());
 		}
 
-		// db.close();
 		cursor.close();
-
-		// return contact list
 		return bounceList;
 	}
 
 	// Updating single bounce
 	public int updateBounce(Bounce bounce) {
 		SQLiteDatabase db = this.getWritableDatabase();
-
-		ContentValues values = new ContentValues();
-		values.put(BOUNCES_KEY_BOUNCE_ID, bounce.getBounceId());
-		values.put(BOUNCES_KEY_SENDER_ID, bounce.getSender());
-		values.put(BOUNCES_KEY_NUMBER_OF_OPTIONS, bounce.getNumberOfOptions());
-		values.put(BOUNCES_KEY_TYPES,
-				convertArrayOfIntsToString(bounce.getTypes()));
-		values.put(BOUNCES_KEY_CONTENTS,
-				convertArrayOfStringToString(bounce.getContents()));
-		values.put(BOUNCES_KEY_RECEIVERS,
-				convertArrayOfIntsToString(bounce.getReceivers()));
-		values.put(BOUNCES_KEY_ISFROMSELF, bounce.getIsFromSelf());
-		values.put(BOUNCES_KEY_QUESTION, bounce.getQuestion());
-		values.put(BOUNCES_KEY_OPTION_TITLES,
-				convertArrayOfStringToString(bounce.getOptionNames()));
-		values.put(BOUNCES_KEY_SEND_AT, bounce.getSendAt().getTime());
-		values.put(BOUNCES_KEY_STATUS, bounce.getStatus());
-		values.put(BOUNCES_KEY_ISSEEN, bounce.getIsSeen());
-
-		Log.d(TAG, "on Update status is " + bounce.getStatus());
-
-		// updating row
+		ContentValues values = putContentValues(bounce);
+		updateOptions(bounce);
 		return db.update(TABLE_BOUNCES, values, BOUNCES_KEY_ID + " = ?",
 				new String[] { String.valueOf(bounce.getID()) });
 	}
@@ -530,7 +529,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_BOUNCES, BOUNCES_KEY_ID + " = ?",
 				new String[] { String.valueOf(bounce.getID()) });
-		// db.close();
 	}
 
 	public void deleteBounceWithID(Integer id) {
@@ -549,7 +547,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		values.put(LIKES_KEY_SENDER_ID, like.getSenderId());
 		values.put(LIKES_KEY_OPTION_NUMBER, like.getOption());
 
-		// Inserting Row
 		db.insert(TABLE_LIKES, null, values);
 		// db.close();
 	}
@@ -722,6 +719,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		ContentValues values = new ContentValues();
 		values.put(SEEN_KEY_BOUNCE_ID, seenBy.getBounceID());
 		values.put(SEEN_KEY_CONTACT_ID, seenBy.getContactID());
+
+		String selectQuery = "SELECT  * FROM " + TABLE_SEEN + " WHERE "
+				+ SEEN_KEY_BOUNCE_ID + " = " + "\"" + seenBy.getBounceID()
+				+ "\"" + " AND " + SEEN_KEY_CONTACT_ID + " = " + "\""
+				+ seenBy.getContactID() + "\"";
+
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		if (cursor != null && cursor.moveToFirst())
+			return;
 
 		// Inserting Row
 		db.insert(TABLE_SEEN, null, values);

@@ -120,7 +120,6 @@ public class LoginActivity extends Activity implements QBCallback {
 		Log.d(TAG, "user Logged In with username: " + user.getLogin()
 				+ " and password: " + user.getPassword());
 		DataHolder.getDataHolder(getApplicationContext()).userLogin(user);
-		DataHolder.getDataHolder(getApplicationContext()).createSession();
 
 		startActivity(intent);
 		Toast.makeText(this, "You've been successfully logged in application",

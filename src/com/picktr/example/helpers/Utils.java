@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -253,6 +254,12 @@ public class Utils {
 		return (result);
 	}
 
+	public static void displayImage(byte[] imageData, ImageView image) {
+		Bitmap bmp = BitmapFactory.decodeByteArray(imageData, 0,
+				imageData.length);
+		image.setImageBitmap(bmp);
+	}
+
 	public static void displayImage(Context ctx, String imageURI,
 			ImageView image) {
 		if (imageURI == null)
@@ -285,12 +292,12 @@ public class Utils {
 			context.startActivity(intent);
 		} else if (bounce.isFromSelf()) {
 			Intent intent = new Intent(context, DisplayBounceFromSelf.class);
-			intent.putExtra("bounce_id", bounce.getBounceId());
+			intent.putExtra("bounce_id", bounce.getID());
 			intent.putExtra("option", position);
 			context.startActivity(intent);
 		} else {
 			Intent intent = new Intent(context, DisplayBounceToSelf.class);
-			intent.putExtra("bounce_id", bounce.getBounceId());
+			intent.putExtra("bounce_id", bounce.getID());
 			intent.putExtra("option", position);
 			context.startActivity(intent);
 		}

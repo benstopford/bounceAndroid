@@ -48,8 +48,7 @@ public class FullScreenImageAdapter extends PagerAdapter {
 		image = (ImageView) viewLayout.findViewById(R.id.imgDisplay);
 		btnClose = (Button) viewLayout.findViewById(R.id.btnClose);
 
-		Utils.displayImage(_activity.getApplicationContext(),
-				bounce.getContentAt(position), image);
+		Utils.displayImage(bounce.getOptions().get(position).getImage(), image);
 
 		// close button click event
 		btnClose.setOnClickListener(new View.OnClickListener() {

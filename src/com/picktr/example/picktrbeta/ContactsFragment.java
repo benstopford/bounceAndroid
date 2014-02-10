@@ -25,6 +25,7 @@ import com.picktr.example.helpers.Contact;
 import com.picktr.example.helpers.ContactListAdapter;
 import com.picktr.example.helpers.DataHolder;
 import com.picktr.example.interfaces.ContactListListener;
+import com.picktr.example.services.NetworkService;
 
 public class ContactsFragment extends Fragment implements
 		AdapterView.OnItemClickListener, ContactListListener {
@@ -38,6 +39,7 @@ public class ContactsFragment extends Fragment implements
 	Button addContactButton;
 	Button inviteFriendsButton;
 	DataHolder dataHolder;
+	NetworkService networkService;
 	Button bounceItButton;
 
 	@Override
@@ -72,6 +74,8 @@ public class ContactsFragment extends Fragment implements
 		contactsListView.setOnItemClickListener(this);
 		dataHolder = DataHolder.getDataHolder(getActivity()
 				.getApplicationContext());
+
+		networkService = ((PicktrApplication) getActivity().getApplication()).networkService;
 
 		contacts = dataHolder.getContacts();
 		contactsAdapter = new ContactListAdapter(getActivity(), contacts);
@@ -142,8 +146,8 @@ public class ContactsFragment extends Fragment implements
 				new DialogInterface.OnClickListener() {
 
 					public void onClick(DialogInterface dialog, int whichButton) {
-						dataHolder
-								.addContactByPhone(input.getText().toString());
+						networkService.addContactByPhone(input.getText()
+								.toString());
 					}
 				});
 

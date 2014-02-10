@@ -111,7 +111,7 @@ public class ContactListPickerAdapter extends BaseAdapter {
 			Bitmap bmp = BitmapFactory.decodeByteArray(contacts.get(position)
 					.getProfileImage(), 0, contacts.get(position)
 					.getProfileImage().length);
-			profileImage.setImageBitmap(bmp);
+			profileImage.setImageBitmap(Utils.createRoundImage(bmp));
 		} else {
 			profileImage.setImageResource(R.drawable.no_photo_icon);
 		}

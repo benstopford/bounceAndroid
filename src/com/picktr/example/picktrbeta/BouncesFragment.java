@@ -34,8 +34,7 @@ import com.picktr.example.helpers.Utils;
 import com.picktr.example.interfaces.BouncesListListener;
 import com.picktr.example.interfaces.ContactListListener;
 import com.picktr.example.interfaces.LikeListener;
-import com.picktr.example.interfaces.NewsArrivedListener;
-import com.picktr.example.interfaces.SessionCreatedListener;
+import com.picktr.example.services.NetworkService;
 import com.quickblox.core.QBCallbackImpl;
 import com.quickblox.core.result.Result;
 import com.quickblox.module.messages.QBMessages;
@@ -43,8 +42,7 @@ import com.quickblox.module.messages.model.QBEnvironment;
 import com.quickblox.module.users.model.QBUser;
 
 public class BouncesFragment extends Fragment implements BouncesListListener,
-		OnItemClickListener, SessionCreatedListener, NewsArrivedListener,
-		ContactListListener, LikeListener {
+		OnItemClickListener, ContactListListener, LikeListener {
 
 	private static final String TAG = "BounceActivity";
 
@@ -57,6 +55,7 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 	String devId;
 	String purpose;
 	DataHolder dataHolder;
+	NetworkService networkService;
 
 	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
@@ -88,6 +87,7 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 
 		dataHolder = DataHolder.getDataHolder(getActivity()
 				.getApplicationContext());
+		networkService = ((PicktrApplication) getActivity().getApplication()).networkService;
 		bounceItButton = (Button) rootView.findViewById(R.id.bounceit_button);
 		bounceItButton.setOnClickListener(new OnClickListener() {
 
@@ -125,15 +125,13 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 			Log.d(TAG, " bounce statues: " + bounces.get(i).getStatus());
 		}
 
-		bouncesListAdapter = new BouncesListAdapter(getActivity(), bounces);
+		bouncesListAdapter = new BouncesListAdapter(getActivity(), bounces,
+				networkService);
 		bouncesListView.setAdapter(bouncesListAdapter);
 		bouncesListView.setOnItemClickListener(this);
 
 		dataHolder.registerBouncesListListener(this);
-		dataHolder.registerSessionCreatedListener(this);
-		dataHolder.registerNewsListener(this);
 		dataHolder.registerLikeListener(this);
-		dataHolder.updateNews();
 		initialize(dataHolder.getSelfUser());
 		QBUser user = dataHolder.getSelfUser();
 		Log.d(TAG, "user is " + user.getLogin() + " " + user.getPassword());
@@ -145,8 +143,6 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 	public void onDestroyView() {
 		Log.d(TAG, "onDestroyView called");
 		dataHolder.deregisterBouncesListListener(this);
-		dataHolder.deregisterSessionCreatedListener(this);
-		dataHolder.deregisterNewsListener(this);
 		dataHolder.deregisterLikeListener(this);
 		super.onDestroyView();
 	}
@@ -157,6 +153,7 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 		bounce.setSendAt(new Date(System.currentTimeMillis()));
 		bounce.setStatus(Consts.BOUNCE_STATUS_DRAFT);
 		bounce.setIsFromSelf(Consts.FROM_SELF);
+		bounce.setNumberOfOptions(0);
 		bounce.setID(dataHolder.addDraftBounce(bounce));
 		Intent intent = new Intent(getActivity(), BounceitActivity.class);
 		intent.putExtra("id", bounce.getID());
@@ -199,10 +196,8 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 							@Override
 							public void onComplete(Result result) {
 								if (result.isSuccess()) {
-									dataHolder.setRegistered(true);
 									Log.d("SUBSCRIBED", "subscribed");
 								} else {
-									dataHolder.setRegistered(false);
 									Log.e("UNSUBSCRIBED", "BAD BAD BAD");
 								}
 							}
@@ -249,26 +244,9 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
-		Log.d(TAG, "OnItemClick called");
-		Bounce bounce = bounces.get(position);
+		Log.d(TAG, "OnItemClick called for position " + position);
+		Bounce bounce = bounces.get(position - 1);
 		Utils.startBounceActivity(getActivity(), bounce, 0);
-	}
-
-	@Override
-	public void onSessionWithUserCreated() {
-		initialize(DataHolder.getDataHolder(getActivity()).getSelfUser());
-		dataHolder.updateNews();
-	}
-
-	@Override
-	public void onNewNews() {
-		getActivity().runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				dataHolder.updateNews();
-			}
-		});
 	}
 
 	@Override
@@ -294,7 +272,5 @@ public class BouncesFragment extends Fragment implements BouncesListListener,
 				bouncesListAdapter.notifyDataSetChanged();
 			}
 		});
-
 	}
-
 }

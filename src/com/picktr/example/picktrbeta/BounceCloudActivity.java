@@ -12,11 +12,11 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import com.picktr.example.definitions.Consts;
 import com.picktr.example.helpers.BounceCloudPageAdapter;
+import com.picktr.example.services.NetworkService;
 
 public class BounceCloudActivity extends FragmentActivity implements
 		OnPageChangeListener {
@@ -31,6 +31,7 @@ public class BounceCloudActivity extends FragmentActivity implements
 	private ImageView bouncesIcon;
 	private ImageView contactsIcon;
 	private List<Fragment> fragments;
+	private NetworkService networkService;
 
 	private int current = 0;
 
@@ -48,6 +49,9 @@ public class BounceCloudActivity extends FragmentActivity implements
 		bouncesIcon = (ImageView) findViewById(R.id.bounces_button);
 		contactsIcon = (ImageView) findViewById(R.id.contacts_button);
 
+		networkService = ((PicktrApplication) getApplication()).networkService;
+		if (networkService != null)
+			networkService.createSession();
 		fragments = getFragments();
 		adapter = new BounceCloudPageAdapter(getSupportFragmentManager(),
 				fragments);

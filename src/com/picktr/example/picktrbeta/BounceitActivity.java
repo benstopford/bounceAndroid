@@ -1,16 +1,12 @@
 package com.picktr.example.picktrbeta;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,13 +20,10 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Parameters;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore.Images.Media;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -46,6 +39,7 @@ import android.widget.Toast;
 
 import com.picktr.example.definitions.Consts;
 import com.picktr.example.helpers.Bounce;
+import com.picktr.example.helpers.BounceOption;
 import com.picktr.example.helpers.DataHolder;
 import com.picktr.example.helpers.Utils;
 
@@ -71,12 +65,9 @@ public class BounceitActivity extends Activity implements
 	private int currentOption = 0;
 	private EditText questionView;
 	private ArrayList<EditText> optionTitleViews;
-
+	private ArrayList<byte[]> optionImages;
 	private String question;
-	private ArrayList<String> imageURIs;
-	private ArrayList<Integer> types;
 	private ArrayList<Integer> receivers;
-	private ArrayList<String> optionTitles;
 	private Camera.Size previewSize;
 	private Camera.Parameters parameters;
 	private byte[] lastShownImage;
@@ -160,39 +151,25 @@ public class BounceitActivity extends Activity implements
 	private void setupBounceViews() {
 
 		receivers = new ArrayList<Integer>();
-		types = new ArrayList<Integer>();
 		optionTitleViews = new ArrayList<EditText>();
-		optionTitles = new ArrayList<String>();
-		imageURIs = new ArrayList<String>();
-
-		types.clear();
-		optionTitleViews.clear();
-		imageURIs.clear();
-
+		optionImages = new ArrayList<byte[]>();
 		takenPicturesLinearLayout.removeAllViews();
-
-		ArrayList<String> contents = new ArrayList<String>();
 
 		if (bounce.getNumberOfOptions() != null)
 			optionNumber = bounce.getNumberOfOptions();
 		if (bounce.getReceivers() != null)
 			receivers = bounce.getReceivers();
-		if (bounce.getContents() != null)
-			contents = bounce.getContents();
-		if (bounce.getOptionNames() != null)
-			optionTitles = bounce.getOptionNames();
-		if (bounce.getQuestion() != null)
-			question = bounce.getQuestion();
-
-		// Log.d(TAG, "contents.size() = " + bounce.getContents().size());
-		// Log.d(TAG, "optionTitles.size() = " +
-		// bounce.getOptionNames().size());
-		currentOption = 0;
-		for (int i = 0; i < optionNumber; i++) {
-			addOption(contents.get(i), optionTitles.get(i));
+		if (bounce.getQuestion() != null) {
+			questionView.setText(bounce.getQuestion());
 		}
 
-		questionView.setText(question);
+		currentOption = 0;
+		ArrayList<BounceOption> contents = new ArrayList<BounceOption>();
+		if (bounce.getOptions() != null)
+			contents = bounce.getOptions();
+		for (int i = 0; i < optionNumber; i++) {
+			addOption(contents.get(i).getImage(), contents.get(i).getTitle());
+		}
 	}
 
 	@Override
@@ -274,24 +251,24 @@ public class BounceitActivity extends Activity implements
 	}
 
 	private void setupBounce() {
-
 		question = questionView.getText().toString();
-
-		optionTitles.clear();
-		for (int i = 0; i < optionTitleViews.size(); i++) {
-			optionTitles.add(optionTitleViews.get(i).getText().toString());
-		}
-
 		bounce.setSender(dataHolder.getSelf().getUserID());
-		bounce.setNumberOfOptions(optionTitles.size());
 		bounce.setQuestion(question);
-		bounce.setOptionNames(optionTitles);
-		bounce.setTypes(types);
 		bounce.setSendAt(new Date(System.currentTimeMillis()));
 		bounce.setReceivers(receivers);
-		bounce.setContents(imageURIs);
 
-		Log.d(TAG, "Contents: " + imageURIs + " optionTitles:" + optionTitles);
+		bounce.setNumberOfOptions(optionTitleViews.size());
+		bounce.deleteAllOptions();
+
+		for (int i = 0; i < optionTitleViews.size(); i++) {
+			BounceOption option = new BounceOption();
+			option.setBounceID(bounce.getID());
+			option.setImage(optionImages.get(i));
+			option.setTitle(optionTitleViews.get(i).getText().toString());
+			option.setOptionNumber(i);
+			option.setType(Consts.CONTENT_TYPE_IMAGE);
+			bounce.addOption(option);
+		}
 
 	}
 
@@ -411,7 +388,8 @@ public class BounceitActivity extends Activity implements
 	}
 
 	private void sendToBackendAndFinish() {
-		dataHolder.sendBounce(bounce);
+		((PicktrApplication) getApplication()).networkService
+				.putBounceToSend(bounce);
 		finish();
 	}
 
@@ -454,18 +432,6 @@ public class BounceitActivity extends Activity implements
 
 	}
 
-	@SuppressLint("NewApi")
-	private static Point getDisplaySize(final Display display) {
-		final Point point = new Point();
-		try {
-			display.getSize(point);
-		} catch (java.lang.NoSuchMethodError ignore) { // Older device
-			point.x = display.getWidth();
-			point.y = display.getHeight();
-		}
-		return point;
-	}
-
 	private void deleteOptionPressed(int optionNumber) {
 		Log.d(TAG, "on delete Option pressed for optionNumber " + optionNumber);
 		setupBounce();
@@ -473,26 +439,23 @@ public class BounceitActivity extends Activity implements
 		setupBounceViews();
 	}
 
-	private void addOption(String picturePath, String textOption) {
-
+	private void addOption(byte[] imageData, String textOption) {
 		LayoutInflater inflater = (LayoutInflater) this
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
 		View optionView = inflater.inflate(
 				R.layout.bounce_option_view_layout_small, null);
 		EditText optionText = (EditText) optionView
 				.findViewById(R.id.option_text);
 		optionText.setText(textOption);
+
 		ImageView optionImage = (ImageView) optionView
 				.findViewById(R.id.option_image);
-		Utils.displayImage(this, picturePath, optionImage);
+		Utils.displayImage(imageData, optionImage);
 
 		ImageButton deleteButton = (ImageButton) optionView
 				.findViewById(R.id.option_delete_button);
-
 		deleteButton.setTag(currentOption);
 		currentOption++;
-
 		deleteButton.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -506,12 +469,7 @@ public class BounceitActivity extends Activity implements
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 				imgHeight, imgHeight);
 		optionView.setLayoutParams(params);
-
 		takenPicturesLinearLayout.addView(optionView);
-		optionTitleViews.add(optionText);
-		imageURIs.add(picturePath);
-		types.add(Consts.CONTENT_TYPE_IMAGE);
-
 		Handler handler = new Handler();
 		handler.postDelayed(new Runnable() {
 			public void run() {
@@ -519,9 +477,11 @@ public class BounceitActivity extends Activity implements
 			}
 		}, 100L);
 
+		optionTitleViews.add(optionText);
+		optionImages.add(imageData);
 	}
 
-	private Uri saveImage(byte[] pictureData) {
+	private byte[] saveImage(byte[] pictureData) {
 		int w = previewSize.width;
 		int h = previewSize.height;
 		int format = parameters.getPreviewFormat();
@@ -547,27 +507,11 @@ public class BounceitActivity extends Activity implements
 		resizedBitmap = Bitmap.createBitmap(resizedBitmap, 0, 0,
 				Math.min(height, width), Math.min(height, width));
 		resizedBitmap = Utils.getResizedBitmap(resizedBitmap, 500, 500);
-		Uri uriTarget = getContentResolver().insert(Media.EXTERNAL_CONTENT_URI,
-				new ContentValues());
-		OutputStream imageFileOS;
-		try {
-			imageFileOS = getContentResolver().openOutputStream(uriTarget);
-			resizedBitmap
-					.compress(Bitmap.CompressFormat.JPEG, 100, imageFileOS);
-			// imageFileOS.write(pictureData);
-			imageFileOS.flush();
-			imageFileOS.close();
-			// Toast.makeText(BounceitActivity.this,
-			// "Image saved: " + uriTarget.getPath(), Toast.LENGTH_LONG)
-			// .show();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return uriTarget;
+
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+		byte[] byteArray = stream.toByteArray();
+		return byteArray;
 	}
 
 	public void onPictureTaken(byte[] pictureData) {
@@ -579,9 +523,8 @@ public class BounceitActivity extends Activity implements
 					"Sorry, no more than 5 options! ", Toast.LENGTH_LONG)
 					.show();
 		} else {
-			Uri uriTarget = saveImage(pictureData);
-			addOption(Utils.getRealPathFromURI(this, uriTarget), optionNumber
-					+ ")");
+			byte[] imageData = saveImage(pictureData);
+			addOption(imageData, optionNumber + ")");
 		}
 		startPreview();
 	}

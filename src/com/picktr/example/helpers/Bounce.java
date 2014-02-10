@@ -12,18 +12,16 @@ public class Bounce {
 	private static final String TAG = "Bounce Class";
 
 	private long ID;
-	private Integer sender_id;
-	private Integer numberOfOptions;
+	private String QBID;
+	private Integer senderID;
 	private String question;
-	private ArrayList<String> optionNames;
-	private ArrayList<Integer> type;
-	private ArrayList<String> content;
-	private ArrayList<Integer> receivers;
-	private String bounce_id;
-	private Integer isFromSelf; // 0 - false 1 - true
-	private Date sendAt;
+	private Integer numberOfOptions;
+	private ArrayList<BounceOption> options;
 	private String status; // status Consts in Consts file
 	private Integer isSeen; // 0 - false 1 - true
+	private Integer isFromSelf; // 0 - false 1 - true
+	private ArrayList<Integer> receivers;
+	private Date sendAt;
 
 	public void deleteOption(int optionNumber) {
 		Log.d(TAG, "removing option number " + optionNumber);
@@ -31,10 +29,7 @@ public class Bounce {
 			Log.e(TAG, "on Delete Option called outside the interval");
 			return;
 		}
-		optionNames.remove(optionNumber);
-		type.remove(optionNumber);
-		content.remove(optionNumber);
-		Log.d("TAG", "after removing content.size() = " + content.size());
+		options.remove(optionNumber);
 		numberOfOptions -= 1;
 	}
 
@@ -42,51 +37,37 @@ public class Bounce {
 
 	}
 
-	public Bounce(int sender_id, int numberOfOptions, ArrayList<Integer> type,
-			ArrayList<String> content, ArrayList<Integer> receivers,
-			String bounce_id, int isFromSelf, String question,
-			ArrayList<String> optionNames, Date sendAt, String status,
-			int isSeen) {
-		this.sender_id = sender_id;
-		this.numberOfOptions = numberOfOptions;
-		this.type = type;
-		this.content = content;
-		this.receivers = receivers;
-		this.bounce_id = bounce_id;
-		this.isFromSelf = isFromSelf;
-		this.question = question;
-		this.optionNames = optionNames;
-		this.sendAt = sendAt;
-		this.status = status;
-		this.isSeen = isSeen;
-	}
-
-	public Bounce(int sender_id, int numberOfOptions, ArrayList<Integer> type,
-			ArrayList<String> content, ArrayList<Integer> receivers,
-			String bounce_id, long ID, int isFromSelf, String question,
-			ArrayList<String> optionNames, Date sendAt, String status,
-			int isSeen) {
-		this.sender_id = sender_id;
-		this.numberOfOptions = numberOfOptions;
-		this.type = type;
-		this.content = content;
-		this.receivers = receivers;
-		this.bounce_id = bounce_id;
+	public Bounce(long ID, String QBID, Integer senderID, String question,
+			Integer numberOfOptions, ArrayList<BounceOption> options,
+			String status, Integer isSeen, Integer isFromSelf,
+			ArrayList<Integer> receivers, Date sendAt) {
 		this.ID = ID;
-		this.isFromSelf = isFromSelf;
+		this.QBID = QBID;
+		this.senderID = senderID;
 		this.question = question;
-		this.optionNames = optionNames;
-		this.sendAt = sendAt;
+		this.numberOfOptions = numberOfOptions;
+		this.options = options;
 		this.status = status;
 		this.isSeen = isSeen;
+		this.isFromSelf = isFromSelf;
+		this.receivers = receivers;
+		this.sendAt = sendAt;
 	}
 
-	public Date getSendAt() {
-		return sendAt;
-	}
-
-	public void setSendAt(Date date) {
-		sendAt = date;
+	public Bounce(String QBID, Integer senderID, String question,
+			Integer numberOfOptions, ArrayList<BounceOption> options,
+			String status, Integer isSeen, Integer isFromSelf,
+			ArrayList<Integer> receivers, Date sendAt) {
+		this.QBID = QBID;
+		this.senderID = senderID;
+		this.question = question;
+		this.numberOfOptions = numberOfOptions;
+		this.options = options;
+		this.status = status;
+		this.isSeen = isSeen;
+		this.isFromSelf = isFromSelf;
+		this.receivers = receivers;
+		this.sendAt = sendAt;
 	}
 
 	public long getID() {
@@ -97,94 +78,20 @@ public class Bounce {
 		this.ID = id;
 	}
 
+	public String getQBID() {
+		return QBID;
+	}
+
+	public void setQBID(String qbID) {
+		this.QBID = qbID;
+	}
+
 	public Integer getSender() {
-		return sender_id;
+		return senderID;
 	}
 
 	public void setSender(int sender_id) {
-		this.sender_id = sender_id;
-	}
-
-	public Integer getNumberOfOptions() {
-		return numberOfOptions;
-	}
-
-	public void setNumberOfOptions(int numberOfOptions) {
-		this.numberOfOptions = numberOfOptions;
-	}
-
-	public ArrayList<Integer> getTypes() {
-		return type;
-	}
-
-	public void setTypes(ArrayList<Integer> types) {
-		this.type = types;
-	}
-
-	public ArrayList<Integer> getReceivers() {
-		return receivers;
-	}
-
-	public void setReceivers(ArrayList<Integer> receivers) {
-		this.receivers = receivers;
-	}
-
-	public ArrayList<String> getContents() {
-		return content;
-	}
-
-	public void setContents(ArrayList<String> newContents) {
-		content = newContents;
-	}
-
-	public String getContentAt(int indexOfOption) {
-		if (indexOfOption >= content.size())
-			return null;
-
-		return content.get(indexOfOption);
-	}
-
-	public String getReceiversAsString() {
-		String res = "";
-
-		Integer tt = receivers.get(0);
-		Log.d(TAG, tt.toString());
-		for (int i = 0; i < receivers.size(); i++) {
-			String t = receivers.get(i).toString();
-			res = res + "id" + t;
-		}
-
-		Log.d(TAG, "getReceiversAsString = " + res);
-
-		return res;
-	}
-
-	@Override
-	public String toString() {
-
-		return super.toString() + "Sender_id " + sender_id + "Content "
-				+ content + " receivers " + receivers + " number of options"
-				+ numberOfOptions + " types " + type;
-	}
-
-	public String getBounceId() {
-		return bounce_id;
-	}
-
-	public void setBounceId(String bounce_id) {
-		this.bounce_id = bounce_id;
-	}
-
-	public boolean isFromSelf() {
-		return (isFromSelf == 1);
-	}
-
-	public Integer getIsFromSelf() {
-		return isFromSelf;
-	}
-
-	public void setIsFromSelf(int isFromSelf) {
-		this.isFromSelf = isFromSelf;
+		this.senderID = sender_id;
 	}
 
 	public String getQuestion() {
@@ -195,12 +102,22 @@ public class Bounce {
 		question = q;
 	}
 
-	public ArrayList<String> getOptionNames() {
-		return optionNames;
+	public Integer getNumberOfOptions() {
+		return numberOfOptions;
 	}
 
-	public void setOptionNames(ArrayList<String> optionNames) {
-		this.optionNames = optionNames;
+	public void setNumberOfOptions(int numberOfOptions) {
+		this.numberOfOptions = numberOfOptions;
+	}
+
+	public ArrayList<BounceOption> getOptions() {
+		if (options == null)
+			options = new ArrayList<BounceOption>();
+		return this.options;
+	}
+
+	public void setOptions(ArrayList<BounceOption> options) {
+		this.options = options;
 	}
 
 	public boolean isDraft() {
@@ -226,4 +143,43 @@ public class Bounce {
 	public boolean isSeen() {
 		return (isSeen == 1);
 	}
+
+	public boolean isFromSelf() {
+		return (isFromSelf == 1);
+	}
+
+	public Integer getIsFromSelf() {
+		return isFromSelf;
+	}
+
+	public void setIsFromSelf(int isFromSelf) {
+		this.isFromSelf = isFromSelf;
+	}
+
+	public ArrayList<Integer> getReceivers() {
+		return receivers;
+	}
+
+	public void setReceivers(ArrayList<Integer> receivers) {
+		this.receivers = receivers;
+	}
+
+	public Date getSendAt() {
+		return sendAt;
+	}
+
+	public void setSendAt(Date date) {
+		sendAt = date;
+	}
+
+	public void addOption(BounceOption option) {
+		if (options == null)
+			options = new ArrayList<BounceOption>();
+		options.add(option);
+	}
+
+	public void deleteAllOptions() {
+		options = new ArrayList<BounceOption>();
+	}
+
 }

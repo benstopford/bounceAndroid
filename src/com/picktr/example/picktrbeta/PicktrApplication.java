@@ -4,16 +4,17 @@ import org.acra.ACRA;
 import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 
 import com.picktr.example.definitions.Consts;
 import com.picktr.example.helpers.DataHolder;
-import com.quickblox.core.QBCallback;
+import com.picktr.example.services.NetworkService;
 import com.quickblox.core.QBSettings;
-import com.quickblox.core.result.Result;
-import com.quickblox.module.auth.QBAuth;
-import com.quickblox.module.users.model.QBUser;
 
 @ReportsCrashes(formKey = "", // This is required for backward compatibility but
 // not used
@@ -22,63 +23,53 @@ public class PicktrApplication extends Application {
 
 	public DataHolder dataHolder;
 	public static final String TAG = "BounceCloudApplication";
-	private Runnable createSessionRunnable;
-	private Handler handler;
+
+	public NetworkService networkService = null;
+	private Boolean mIsBound = false;
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			Log.d(TAG, "Disconnected");
+			networkService = null;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			Log.d(TAG, "Connected to the service.");
+			networkService = ((NetworkService.NetworkBinder) service)
+					.getService();
+		}
+	};
+
+	void doBindService() {
+		bindService(new Intent(this, NetworkService.class), mConnection,
+				BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	void doUnbindService() {
+		if (mIsBound) {
+			unbindService(mConnection);
+			mIsBound = false;
+		}
+	}
 
 	@Override
 	public void onCreate() {
 		Log.d(TAG, "onCreateForApplication called");
-		ACRA.init(this);
-		dataHolder = DataHolder.getDataHolder(getApplicationContext());
-
 		QBSettings.getInstance().fastConfigInit(Consts.APP_ID, Consts.AUTH_KEY,
 				Consts.AUTH_SECRET);
-		handler = new Handler();
-
-		createSessionRunnable = new Runnable() {
-			@Override
-			public void run() {
-				dataHolder.createSession();
-				handler.postDelayed(createSessionRunnable, 3600000);
-			}
-		};
-
-		QBUser user = dataHolder.getSelfUser();
-		if (user != null) {
-			QBAuth.createSession(user, new QBCallback() {
-
-				@Override
-				public void onComplete(Result arg0, Object arg1) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void onComplete(Result result) {
-					// TODO Auto-generated method stub
-
-					if (result.isSuccess()) {
-						Log.d(TAG, "successfully created session");
-					} else {
-						Log.e(TAG, "FAILED TO CREATE SESSION");
-					}
-					callSuperOnCreate();
-				}
-			});
-		} else {
-			callSuperOnCreate();
-		}
-		createSessionRunnable.run();
-	}
-
-	public void callSuperOnCreate() {
+		ACRA.init(this);
+		doBindService();
 		super.onCreate();
 	}
 
 	@Override
 	public void onTerminate() {
 		// TODO Auto-generated method stub
-		handler.removeCallbacks(createSessionRunnable);
+		doUnbindService();
 		super.onTerminate();
 	}
 }
