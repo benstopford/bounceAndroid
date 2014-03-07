@@ -9,6 +9,30 @@
         android:layout_height="fill_parent"
         android:scaleType="fitCenter" />
 
+    <WebView
+        android:id="@+id/imgWebview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
+    <ImageButton
+        android:id="@+id/open_url_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignLeft="@id/imgWebview"
+        android:layout_alignTop="@id/imgWebview"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/open_url_in_browser_icon" />
+
+    <ImageButton
+        android:id="@+id/refresh_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_toRightOf="@id/open_url_button"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/refresh_webview_icon" />
+
     <Button
         android:id="@+id/btnClose"
         android:layout_width="wrap_content"

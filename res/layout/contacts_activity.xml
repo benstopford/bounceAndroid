@@ -35,14 +35,8 @@
         android:id="@+id/contact_list"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/buttons" />
-
-    <Button
-        android:id="@+id/bounceit_button"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/bounceit_icon" />
+        android:layout_below="@id/buttons"
+        android:divider="#bfbfbf"
+        android:dividerHeight="2dp" />
 
 </RelativeLayout>

@@ -31,31 +31,35 @@
                     android:layout_height="25dp"
                     android:layout_alignBottom="@id/profile_image"
                     android:layout_alignRight="@id/profile_image"
-                    android:src="@drawable/edit_icon" />
+                    android:src="@drawable/edit_profile_icon" />
             </RelativeLayout>
 
             <TextView
                 android:id="@+id/my_name_text"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Name:" />
+                android:text="Name:"
+                android:textColor="#bfbfbf" />
 
             <EditText
                 android:id="@+id/my_name"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/edittext" />
+                android:background="@drawable/edittext"
+                android:textColor="#404040" />
 
             <TextView
                 android:id="@+id/my_phone_text"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Phone number:" />
+                android:text="Phone number:"
+                android:textColor="#bfbfbf" />
 
             <TextView
                 android:id="@+id/my_phone"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="#404040" />
 
             <Button
                 android:id="@+id/save_button"
@@ -64,16 +68,8 @@
                 android:layout_margin="5dp"
                 android:background="@drawable/button_background"
                 android:text="Save details"
-                android:textColor="#E7ECE6" />
+                android:textColor="@android:color/background_light" />
         </LinearLayout>
     </ScrollView>
-
-    <Button
-        android:id="@+id/bounceit_button"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/bounceit_icon" />
 
 </RelativeLayout>

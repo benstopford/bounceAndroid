@@ -8,6 +8,7 @@ public class BounceOption {
 	private int optionNumber;
 	private int type;
 	private byte[] image;
+	private String url;
 	private String title;
 
 	// Empty constructor
@@ -17,24 +18,14 @@ public class BounceOption {
 
 	// constructor
 	public BounceOption(long id, long bounceID, int optionNumber, int type,
-			String title, byte[] image) {
+			String title, byte[] image, String url) {
 		this.id = id;
 		this.bounce_db_id = bounceID;
 		this.optionNumber = optionNumber;
 		this.type = type;
 		this.title = title;
 		this.image = image;
-	}
-
-	// constructor without ID, be careful! use it only for adding to database
-	// and then get it from DB
-	public BounceOption(long bounceID, int optionNumber, int type,
-			String title, byte[] image) {
-		this.bounce_db_id = bounceID;
-		this.optionNumber = optionNumber;
-		this.type = type;
-		this.title = title;
-		this.image = image;
+		this.url = url;
 	}
 
 	public void setID(long id) {
@@ -83,6 +74,14 @@ public class BounceOption {
 
 	public byte[] getImage() {
 		return this.image;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getUrl() {
+		return this.url;
 	}
 
 }

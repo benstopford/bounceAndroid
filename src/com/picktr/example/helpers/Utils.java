@@ -24,6 +24,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.ImageView;
 
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -63,6 +65,14 @@ public class Utils {
 				cursor.close();
 			}
 		}
+	}
+
+	public static void setupWebView(WebView wb) {
+		wb.getSettings().setJavaScriptEnabled(true);
+		wb.getSettings().setLoadWithOverviewMode(true);
+		wb.getSettings().setUseWideViewPort(true);
+		wb.getSettings().setPluginState(WebSettings.PluginState.ON);
+		wb.getSettings().setDefaultZoom(WebSettings.ZoomDensity.FAR);
 	}
 
 	public static Bitmap createRoundImage(Bitmap loadedImage) {

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/option_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true"
+    android:padding="3dp" >
+
+    <ImageView
+        android:id="@+id/option_image"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentBottom="true" />
+
+    <WebView
+        android:id="@+id/option_webview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
+    <ImageButton
+        android:id="@+id/fullscreen_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignRight="@id/option_webview"
+        android:layout_alignTop="@id/option_webview"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/view_url_fullscreen_icon" />
+
+    <ImageButton
+        android:id="@+id/open_url_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignLeft="@id/option_webview"
+        android:layout_alignTop="@id/option_webview"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/open_url_in_browser_icon" />
+
+    <ImageButton
+        android:id="@+id/refresh_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignTop="@id/option_webview"
+        android:layout_toRightOf="@id/open_url_button"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/refresh_webview_icon" />
+
+    <TextView
+        android:id="@+id/option_text"
+        android:layout_width="fill_parent"
+        android:layout_height="27dp"
+        android:layout_alignParentBottom="true"
+        android:background="#60000000"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="10sp" >
+    </TextView>
+
+    <ToggleButton
+        android:id="@+id/option_like"
+        android:layout_width="27dp"
+        android:layout_height="27dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@id/option_text"
+        android:background="@drawable/heart_icon"
+        android:scaleType="fitXY"
+        android:textOff=""
+        android:textOn="" >
+    </ToggleButton>
+
+</RelativeLayout>

@@ -5,18 +5,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.picktr.example.definitions.Consts;
 import com.picktr.example.helpers.Bounce;
 import com.picktr.example.helpers.Contact;
 import com.picktr.example.helpers.DataHolder;
@@ -101,12 +106,28 @@ public class DisplayBounceToSelf extends Activity implements
 		});
 	}
 
+	private void openURL(int option) {
+		String url = bounce.getOptions().get(option).getUrl();
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse(url));
+		startActivity(i);
+	}
+
 	private void applyOptions() {
 		optionsView.removeAllViews();
 
 		for (int i = 0; i < bounce.getNumberOfOptions(); i++) {
+
 			View optionView = layoutInflater.inflate(
-					R.layout.bounce_option_view, null);
+					R.layout.bounce_option_view_display_view, null);
+
+			optionsView.addView(optionView);
+
+			LayoutParams optionParams = optionView.getLayoutParams();
+			optionParams.width = Utils.getDisplaySize(this).x;
+			optionParams.height = Utils.getDisplaySize(this).x;
+			optionView.setLayoutParams(optionParams);
+
 			TextView optionText = (TextView) optionView
 					.findViewById(R.id.option_text);
 			optionText.setText(bounce.getOptions().get(i).getTitle());
@@ -114,26 +135,15 @@ public class DisplayBounceToSelf extends Activity implements
 			ImageView optionImage = (ImageView) optionView
 					.findViewById(R.id.option_image);
 
-			LayoutParams imageParams = optionImage.getLayoutParams();
-			imageParams.width = Utils.getDisplaySize(this).x;
-			imageParams.height = Utils.getDisplaySize(this).x;
-			optionImage.setLayoutParams(imageParams);
+			WebView optionWebview = (WebView) optionView
+					.findViewById(R.id.option_webview);
 
-			LayoutParams textParams = optionText.getLayoutParams();
-			textParams.width = Utils.getDisplaySize(this).x;
-			optionText.setLayoutParams(textParams);
-			Utils.displayImage(bounce.getOptions().get(i).getImage(),
-					optionImage);
+			ImageButton fullScreenButton = (ImageButton) optionView
+					.findViewById(R.id.fullscreen_button);
 
-			ToggleButton likeButton = (ToggleButton) optionView
-					.findViewById(R.id.option_like);
-			applyLikeButton(likeButton, i);
-
-			optionImage.setTag(R.string.bounce_id, bounce.getID());
-			optionImage.setTag(R.string.option_number, i);
-
-			optionImage.setOnClickListener(new OnClickListener() {
-
+			fullScreenButton.setTag(R.string.bounce_id, bounce.getID());
+			fullScreenButton.setTag(R.string.option_number, i);
+			fullScreenButton.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
@@ -141,8 +151,71 @@ public class DisplayBounceToSelf extends Activity implements
 					startFullScreen(option);
 				}
 			});
-			optionsView.addView(optionView);
+
+			ImageButton openURLButton = (ImageButton) optionView
+					.findViewById(R.id.open_url_button);
+			openURLButton.setTag(R.string.bounce_id, bounce.getID());
+			openURLButton.setTag(R.string.option_number, i);
+			openURLButton.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub
+					int option = (Integer) v.getTag(R.string.option_number);
+					openURL(option);
+				}
+			});
+
+			ImageButton refreshButton = (ImageButton) optionView
+					.findViewById(R.id.refresh_button);
+
+			LayoutParams textParams = optionText.getLayoutParams();
+			textParams.width = Utils.getDisplaySize(this).x;
+			optionText.setLayoutParams(textParams);
+
+			if (bounce.getOptions().get(i).getType() == Consts.CONTENT_TYPE_IMAGE) {
+				Utils.displayImage(bounce.getOptions().get(i).getImage(),
+						optionImage);
+				optionImage.setTag(R.string.bounce_id, bounce.getID());
+				optionImage.setTag(R.string.option_number, i);
+				optionImage.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						// TODO Auto-generated method stub
+						int option = (Integer) v.getTag(R.string.option_number);
+						startFullScreen(option);
+					}
+				});
+				openURLButton.setVisibility(View.INVISIBLE);
+				optionWebview.setVisibility(View.INVISIBLE);
+				optionImage.setVisibility(View.VISIBLE);
+				refreshButton.setVisibility(View.INVISIBLE);
+			} else if (bounce.getOptions().get(i).getType() == Consts.CONTENT_TYPE_URL) {
+				Utils.setupWebView(optionWebview);
+				optionWebview.setWebViewClient(new WebViewClient());
+				optionWebview.loadUrl(bounce.getOptions().get(i).getUrl());
+				openURLButton.setVisibility(View.VISIBLE);
+				optionWebview.setVisibility(View.VISIBLE);
+
+				setRefreshButton(refreshButton, optionWebview);
+				refreshButton.setVisibility(View.VISIBLE);
+				optionImage.setVisibility(View.INVISIBLE);
+			}
+
+			ToggleButton likeButton = (ToggleButton) optionView
+					.findViewById(R.id.option_like);
+			applyLikeButton(likeButton, i);
+
 		}
+	}
+
+	private void setRefreshButton(ImageButton refreshButton,
+			final WebView optionWebview) {
+		refreshButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				optionWebview.reload();
+			}
+		});
 	}
 
 	private void startFullScreen(int position) {

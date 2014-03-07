@@ -51,19 +51,18 @@
             android:textColor="#999999"
             android:textSize="12dp"
             android:textStyle="italic" />
+
+        <ImageButton
+            android:id="@+id/overflow_menu_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            android:src="@drawable/overflow_menu_icon" />
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/delete_button"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:background="@android:color/transparent"
-        android:scaleType="fitXY"
-        android:src="@drawable/delete_icon" />
-
     <HorizontalScrollView
+        android:id="@+id/bounces_options_scrollview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/top_bar" >
@@ -74,5 +73,12 @@
             android:layout_height="fill_parent"
             android:orientation="horizontal" />
     </HorizontalScrollView>
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="3dp"
+        android:layout_below="@id/bounces_options_scrollview"
+        android:background="@android:color/transparent"
+        android:src="@drawable/card_shadow" />
 
 </RelativeLayout>

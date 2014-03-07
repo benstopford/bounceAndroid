@@ -1,24 +1,42 @@
 package com.picktr.example.helpers;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -27,6 +45,8 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.picktr.example.definitions.Consts;
+import com.picktr.example.picktrbeta.BounceCloudActivity;
+import com.picktr.example.picktrbeta.MainActivity;
 import com.picktr.example.picktrbeta.R;
 import com.picktr.example.services.NetworkService;
 
@@ -72,9 +92,9 @@ public class BouncesListAdapter extends BaseAdapter {
 	}
 
 	private void setupOptionsFirstTime(BounceViewHolder viewHolder) {
-		viewHolder.options = new BounceOptionHolder[5];
+		viewHolder.options = new BounceOptionHolder[7];
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 7; i++) {
 			BounceOptionHolder optionHolder = new BounceOptionHolder();
 			viewHolder.options[i] = optionHolder;
 
@@ -86,18 +106,21 @@ public class BouncesListAdapter extends BaseAdapter {
 					.findViewById(R.id.option_text);
 			optionHolder.optionLike = (ToggleButton) optionHolder.optionLayout
 					.findViewById(R.id.option_like);
+			optionHolder.optionWebview = (WebView) optionHolder.optionLayout
+					.findViewById(R.id.option_webview);
 
-			LayoutParams imageParams = optionHolder.optionImage
+			viewHolder.optionsLinearLayout.addView(optionHolder.optionLayout);
+
+			LayoutParams optionParams = optionHolder.optionLayout
 					.getLayoutParams();
-			imageParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
-			imageParams.height = Utils.getDisplaySize(ctx).x / 2 - 50;
-			optionHolder.optionImage.setLayoutParams(imageParams);
+			optionParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
+			optionParams.height = Utils.getDisplaySize(ctx).x / 2 - 50;
+			optionHolder.optionLayout.setLayoutParams(optionParams);
 
 			LayoutParams textParams = optionHolder.optionText.getLayoutParams();
 			textParams.width = Utils.getDisplaySize(ctx).x / 2 - 50;
 			optionHolder.optionText.setLayoutParams(textParams);
 
-			viewHolder.optionsLinearLayout.addView(optionHolder.optionLayout);
 		}
 	}
 
@@ -116,8 +139,8 @@ public class BouncesListAdapter extends BaseAdapter {
 					.findViewById(R.id.sender_profile_image);
 			viewHolder.seenBy = (TextView) convertView
 					.findViewById(R.id.seen_by_textview);
-			viewHolder.deleteButton = (ImageButton) convertView
-					.findViewById(R.id.delete_button);
+			viewHolder.overflowMenuButton = (ImageButton) convertView
+					.findViewById(R.id.overflow_menu_button);
 			viewHolder.topBar = (LinearLayout) convertView
 					.findViewById(R.id.top_bar);
 			viewHolder.optionsLinearLayout = (LinearLayout) convertView
@@ -133,7 +156,7 @@ public class BouncesListAdapter extends BaseAdapter {
 		applyTimestamp(viewHolder.timestamp, position);
 		applyOptions(viewHolder, position);
 		applySenderProfileImage(viewHolder.profileImage, position);
-		applyDeleteButton(viewHolder.deleteButton, position);
+		applyOverflowMenuButton(viewHolder.overflowMenuButton, position);
 		applyIsSeenBy(viewHolder.seenBy, position);
 		applyTopBar(viewHolder, position);
 		return convertView;
@@ -144,6 +167,7 @@ public class BouncesListAdapter extends BaseAdapter {
 
 		if (bounce.isDraft() || bounce.isFromSelf()) {
 			viewHolder.topBar.removeAllViews();
+			viewHolder.topBar.addView(viewHolder.overflowMenuButton);
 			viewHolder.topBar.addView(viewHolder.seenBy);
 			viewHolder.topBar.addView(viewHolder.questionTimestampBlock);
 			viewHolder.topBar.addView(viewHolder.profileImage);
@@ -152,6 +176,7 @@ public class BouncesListAdapter extends BaseAdapter {
 			viewHolder.topBar.addView(viewHolder.profileImage);
 			viewHolder.topBar.addView(viewHolder.questionTimestampBlock);
 			viewHolder.topBar.addView(viewHolder.seenBy);
+			viewHolder.topBar.addView(viewHolder.overflowMenuButton);
 		}
 	}
 
@@ -242,15 +267,14 @@ public class BouncesListAdapter extends BaseAdapter {
 		timestamp.setText(text);
 	}
 
-	private void showConfirmDialog(final String bounceID) {
+	private void showConfirmDialog(final long bounceID) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
 		builder.setTitle("Confirm");
 		builder.setMessage("Are you sure?");
 		builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 
 			public void onClick(DialogInterface dialog, int which) {
-				dataHolder.removeBounceWithInternalID(Integer
-						.parseInt(bounceID));
+				dataHolder.removeBounceWithInternalID(bounceID);
 				dialog.dismiss();
 			}
 
@@ -268,14 +292,16 @@ public class BouncesListAdapter extends BaseAdapter {
 		alert.show();
 	}
 
-	private void applyDeleteButton(ImageButton button, int position) {
-		button.setTag(bounces.get(position).getID());
-		button.setOnClickListener(new OnClickListener() {
+	private PopupWindow popupWindowDogs = null;
+	private int popupPosition = 0;
 
+	private void applyOverflowMenuButton(ImageButton button, final int position) {
+		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// Log.d(TAG, "onButtonClick called");
-				showConfirmDialog(v.getTag().toString());
+				popupWindowDogs = popupWindowDogs();
+				popupPosition = position;
+				popupWindowDogs.showAsDropDown(v, -5, 0);
 			}
 		});
 	}
@@ -360,37 +386,94 @@ public class BouncesListAdapter extends BaseAdapter {
 		Log.d(TAG, "Bounce is " + bounce + " #:" + bounce.getNumberOfOptions());
 
 		for (int i = 0; i < bounce.getOptions().size(); i++) {
-			Utils.displayImage(bounce.getOptions().get(i).getImage(),
-					viewHolder.options[i].optionImage);
-			applyLikeButton(viewHolder.options[i].optionLike, bounce, i);
+
 			viewHolder.options[i].optionText.setText(bounce.getOptions().get(i)
 					.getTitle());
-			viewHolder.options[i].optionImage.setTag(R.string.bounce_id,
-					bounce.getID());
-			viewHolder.options[i].optionImage.setTag(R.string.option_number, i);
-			viewHolder.options[i].optionImage
-					.setOnClickListener(new OnClickListener() {
 
-						@Override
-						public void onClick(View v) {
-							// TODO Auto-generated method stub
-							long bounceID = (Long) v.getTag(R.string.bounce_id);
-							Bounce bounce = dataHolder
-									.getBounceWithInternalId(bounceID);
-							if (bounce == null) {
-								Log.e(TAG, "bounce is null!!!");
-								return;
+			if (bounce.getOptions().get(i).getType() == Consts.CONTENT_TYPE_IMAGE) {
+				Utils.displayImage(bounce.getOptions().get(i).getImage(),
+						viewHolder.options[i].optionImage);
+				viewHolder.options[i].optionImage.setTag(R.string.bounce_id,
+						bounce.getID());
+				viewHolder.options[i].optionImage.setTag(
+						R.string.option_number, i);
+				viewHolder.options[i].optionImage
+						.setOnClickListener(new OnClickListener() {
+
+							@Override
+							public void onClick(View v) {
+								// TODO Auto-generated method stub
+								long bounceID = (Long) v
+										.getTag(R.string.bounce_id);
+								Bounce bounce = dataHolder
+										.getBounceWithInternalId(bounceID);
+								if (bounce == null) {
+									Log.e(TAG, "bounce is null!!!");
+									return;
+								}
+
+								int option = (Integer) v
+										.getTag(R.string.option_number);
+								Utils.startBounceActivity(ctx, bounce, option);
 							}
+						});
+				viewHolder.options[i].optionWebview
+						.setVisibility(View.INVISIBLE);
+				viewHolder.options[i].optionImage.setVisibility(View.VISIBLE);
+			} else if (bounce.getOptions().get(i).getType() == Consts.CONTENT_TYPE_URL) {
+				WebView wb = viewHolder.options[i].optionWebview;
+				Utils.setupWebView(wb);
+				viewHolder.options[i].optionWebview
+						.setWebViewClient(new WebViewClient());
+				viewHolder.options[i].optionWebview.loadUrl(bounce.getOptions()
+						.get(i).getUrl());
+				viewHolder.options[i].optionWebview.setVisibility(View.VISIBLE);
+				viewHolder.options[i].optionImage.setVisibility(View.INVISIBLE);
 
-							int option = (Integer) v
-									.getTag(R.string.option_number);
-							Utils.startBounceActivity(ctx, bounce, option);
+				wb.setTag(R.string.bounce_id, bounce.getID());
+				wb.setTag(R.string.option_number, i);
+				wb.setOnTouchListener(new OnTouchListener() {
+
+					private static final int MAX_CLICK_DURATION = 200;
+					private long startClickTime;
+
+					@Override
+					public boolean onTouch(View v, MotionEvent event) {
+						switch (event.getAction()) {
+						case MotionEvent.ACTION_DOWN: {
+							startClickTime = Calendar.getInstance()
+									.getTimeInMillis();
+							break;
 						}
-					});
+						case MotionEvent.ACTION_UP: {
+							long clickDuration = Calendar.getInstance()
+									.getTimeInMillis() - startClickTime;
+							if (clickDuration < MAX_CLICK_DURATION) {
+								long bounceID = (Long) v
+										.getTag(R.string.bounce_id);
+								Bounce bounce = dataHolder
+										.getBounceWithInternalId(bounceID);
+								if (bounce == null) {
+									Log.e(TAG, "bounce is null!!!");
+									return false;
+								}
+								int option = (Integer) v
+										.getTag(R.string.option_number);
+								Utils.startBounceActivity(ctx, bounce, option);
+							}
+						}
+						}
+						return true;
+					}
+
+				});
+
+			}
+			applyLikeButton(viewHolder.options[i].optionLike, bounce, i);
 			viewHolder.options[i].optionLayout.setVisibility(View.VISIBLE);
 		}
 
-		for (int i = bounce.getNumberOfOptions(); i < 5; i++) {
+		for (int i = bounce.getNumberOfOptions(); i < 7; i++) {
 			viewHolder.options[i].optionLayout.setVisibility(View.GONE);
 		}
 	}
@@ -400,7 +483,7 @@ public class BouncesListAdapter extends BaseAdapter {
 		TextView timestamp;
 		TextView seenBy;
 		ImageView profileImage;
-		ImageButton deleteButton;
+		ImageButton overflowMenuButton;
 		LinearLayout topBar;
 		LinearLayout optionsLinearLayout;
 		LinearLayout questionTimestampBlock;
@@ -409,9 +492,112 @@ public class BouncesListAdapter extends BaseAdapter {
 
 	static class BounceOptionHolder {
 		ImageView optionImage;
+		WebView optionWebview;
 		TextView optionText;
 		ToggleButton optionLike;
 		RelativeLayout optionLayout;
+	}
+
+	private void forwardBounce(int position) {
+		Bounce bounce = bounces.get(position);
+		Bounce newBounce = new Bounce();
+		newBounce.setSender(dataHolder.getSelf().getUserID());
+		newBounce.setSendAt(new Date(System.currentTimeMillis()));
+		newBounce.setStatus(Consts.BOUNCE_STATUS_DRAFT);
+		newBounce.setIsFromSelf(Consts.FROM_SELF);
+		newBounce.setNumberOfOptions(bounce.getNumberOfOptions());
+		newBounce.setOptions(bounce.getOptions());
+		newBounce.setQuestion(bounce.getQuestion());
+		newBounce.setID(dataHolder.addDraftBounce(newBounce));
+		Utils.startBounceActivity(ctx, newBounce, 0);
+	}
+
+	public PopupWindow popupWindowDogs() {
+
+		// initialize a pop up window type
+		PopupWindow popupWindow = new PopupWindow(ctx);
+
+		// the drop down list is a list view
+		ListView listViewDogs = new ListView(ctx);
+		listViewDogs.setBackgroundColor(ctx.getResources().getColor(
+				R.color.lightgrey));
+
+		String[] popUpContents = new String[2];
+		popUpContents[0] = "Forward::1";
+		popUpContents[1] = "Delete::2";
+		// set our adapter and pass our pop up window contents
+		listViewDogs.setAdapter(dogsAdapter(popUpContents));
+
+		// set the item click listener
+		listViewDogs.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View v, int arg2,
+					long arg3) {
+				// get the context and main activity to access variables
+				Context mContext = v.getContext();
+
+				// add some animation when a list item was clicked
+				Animation fadeInAnimation = AnimationUtils.loadAnimation(
+						v.getContext(), android.R.anim.fade_in);
+				fadeInAnimation.setDuration(10);
+				v.startAnimation(fadeInAnimation);
+
+				// dismiss the pop up
+				popupWindowDogs.dismiss();
+
+				// get the id
+				String selectedItemTag = ((TextView) v).getTag().toString();
+
+				if (selectedItemTag.equals("2")) {
+					showConfirmDialog(bounces.get(popupPosition).getID());
+				} else {
+					forwardBounce(popupPosition);
+				}
+
+			}
+
+		});
+
+		// some other visual settings
+		popupWindow.setFocusable(true);
+		popupWindow.setWidth(250);
+		popupWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+
+		// set the list view as pop up window content
+		popupWindow.setContentView(listViewDogs);
+
+		return popupWindow;
+	}
+
+	private ArrayAdapter<String> dogsAdapter(String dogsArray[]) {
+
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(ctx,
+				android.R.layout.simple_list_item_1, dogsArray) {
+
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+
+				// setting the ID and text for every items in the list
+				String item = getItem(position);
+				String[] itemArr = item.split("::");
+				String text = itemArr[0];
+				String id = itemArr[1];
+
+				// visual settings for the list item
+				TextView listItem = new TextView(ctx);
+
+				listItem.setText(text);
+				listItem.setTag(id);
+				listItem.setTextSize(15);
+				listItem.setPadding(10, 10, 10, 10);
+				listItem.setTextColor(Color.parseColor("#555555"));
+
+				return listItem;
+			}
+		};
+
+		return adapter;
 	}
 
 }

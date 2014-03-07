@@ -40,7 +40,6 @@ public class ContactsFragment extends Fragment implements
 	Button inviteFriendsButton;
 	DataHolder dataHolder;
 	NetworkService networkService;
-	Button bounceItButton;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -82,16 +81,6 @@ public class ContactsFragment extends Fragment implements
 		contactsListView.setAdapter(contactsAdapter);
 
 		dataHolder.registerContactListListener(this);
-
-		bounceItButton = (Button) rootView.findViewById(R.id.bounceit_button);
-		bounceItButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				onBounceitClick(v);
-			}
-		});
 
 		return rootView;
 	}

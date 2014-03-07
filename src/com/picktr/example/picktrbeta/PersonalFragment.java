@@ -60,7 +60,6 @@ public class PersonalFragment extends Fragment implements
 	private ImageView editProfileIcon;
 	private Uri outputFileUri;
 	private Boolean changedProfileImage;
-	Button bounceItButton;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -112,16 +111,6 @@ public class PersonalFragment extends Fragment implements
 
 		changedProfileImage = false;
 		dataHolder.registerPersonalListener(this);
-
-		bounceItButton = (Button) rootView.findViewById(R.id.bounceit_button);
-		bounceItButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				onBounceitClick(v);
-			}
-		});
 
 		return rootView;
 	}

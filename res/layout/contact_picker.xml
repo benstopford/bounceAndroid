@@ -11,18 +11,21 @@
         android:layout_alignParentTop="true"
         android:background="@drawable/button_background"
         android:onClick="onSendButtonClick"
-        android:text="Send" />
+        android:text="Send"
+        android:textColor="@android:color/background_light" />
 
     <TextView
         android:id="@+id/choose_text"
         android:layout_width="fill_parent"
         android:layout_height="43dp"
-        android:text="Pick one or more contacts from the list" />
+        android:text="Pick one or more contacts"
+        android:textColor="#bfbfbf" />
 
     <ListView
         android:id="@+id/contact_picker_list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@id/choose_text" />
+        android:layout_below="@id/choose_text"
+        android:divider="#bfbfbf" />
 
 </RelativeLayout>

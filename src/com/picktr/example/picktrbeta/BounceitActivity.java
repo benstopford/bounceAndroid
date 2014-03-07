@@ -29,6 +29,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
@@ -41,31 +43,41 @@ import com.picktr.example.definitions.Consts;
 import com.picktr.example.helpers.Bounce;
 import com.picktr.example.helpers.BounceOption;
 import com.picktr.example.helpers.DataHolder;
+import com.picktr.example.helpers.MyClipboardManager;
 import com.picktr.example.helpers.Utils;
 
 public class BounceitActivity extends Activity implements
 		SurfaceHolder.Callback, Camera.PreviewCallback {
 
 	private static final String TAG = "Bounceit Activity";
-	private SurfaceView cameraPreviewView;
+	private RelativeLayout cameraPreviewView;
+	private SurfaceView cameraPreviewSurface;
 	private SurfaceHolder cameraPreviewHolder;
 	private Camera camera;
 	private HorizontalScrollView takenPicturesView;
 	private LinearLayout takenPicturesLinearLayout;
 	private LinearLayout bounceLinearView;
 	private LinearLayout bounceTopLinearView;
+	private LinearLayout URLView;
+	private RelativeLayout buttonsLayout;
+	private WebViewClient webClient;
+	private WebView webView;
+	private EditText urlEditText;
 	private ImageButton flushButton;
 	private ImageButton takePictureButton;
 	private Boolean inPreview = false;
 	private Boolean isFlushOn = false;
 	private Boolean isFrontCamera = false;
 	private Boolean draftNotify = true;
+	private ImageButton urlButton;
 	private boolean cameraConfigured = false;
 	private int optionNumber = 0;
 	private int currentOption = 0;
 	private EditText questionView;
 	private ArrayList<EditText> optionTitleViews;
 	private ArrayList<byte[]> optionImages;
+	private ArrayList<String> optionURLs;
+	private ArrayList<Integer> optionTypes;
 	private String question;
 	private ArrayList<Integer> receivers;
 	private Camera.Size previewSize;
@@ -74,6 +86,9 @@ public class BounceitActivity extends Activity implements
 	private Bounce bounce;
 	private DataHolder dataHolder;
 	private int imgHeight = 0;
+
+	private ImageButton chooseUrlButton;
+	private ImageButton choosePhotoButton;
 
 	private void setupCamera() {
 		parameters = camera.getParameters();
@@ -108,6 +123,21 @@ public class BounceitActivity extends Activity implements
 		bounceParams.width = width;
 		bounceLinearView.setLayoutParams(bounceParams);
 
+		// URL params
+		RelativeLayout.LayoutParams URLparams = (RelativeLayout.LayoutParams) URLView
+				.getLayoutParams();
+		URLparams.height = width;
+		URLparams.width = width;
+		URLView.setLayoutParams(URLparams);
+
+		// Buttons params
+		RelativeLayout.LayoutParams buttonsParams = (RelativeLayout.LayoutParams) buttonsLayout
+				.getLayoutParams();
+		buttonsParams.height = width;
+		buttonsParams.width = width;
+		buttonsLayout.setLayoutParams(buttonsParams);
+
+		// preview params
 		previewSize = Utils.getBestPreviewSize(width, width, parameters);
 		RelativeLayout.LayoutParams previewParams = (android.widget.RelativeLayout.LayoutParams) cameraPreviewView
 				.getLayoutParams();
@@ -115,28 +145,50 @@ public class BounceitActivity extends Activity implements
 		previewParams.width = width;
 		getWindow()
 				.setLayout(width, previewParams.height + bounceParams.height);
-		RelativeLayout.LayoutParams buttonParams = (android.widget.RelativeLayout.LayoutParams) takePictureButton
-				.getLayoutParams();
-		buttonParams.setMargins(0, 0, 0, (previewParams.height
-				+ bounceParams.height - height - StatusBarHeight));
-		takePictureButton.setLayoutParams(buttonParams);
+		// RelativeLayout.LayoutParams buttonParams =
+		// (android.widget.RelativeLayout.LayoutParams) takePictureButton
+		// .getLayoutParams();
+		// buttonParams.setMargins(0, 0, 0, (previewParams.height
+		// + bounceParams.height - height - StatusBarHeight));
+		// takePictureButton.setLayoutParams(buttonParams);
 		cameraPreviewView.setLayoutParams(previewParams);
 
-		Log.d(TAG, "Sizes : " + bounceParams.height + " and "
-				+ bounceTopLinearView.getLayoutParams().height);
 		imgHeight = bounceParams.height
 				- bounceTopLinearView.getLayoutParams().height;
 	}
 
 	private void setupPreviewView() {
+		webClient = new WebViewClient();
+
+		URLView = (LinearLayout) findViewById(R.id.url_preview_banch);
+		webView = (WebView) findViewById(R.id.url_webview);
+		webView.getSettings().setJavaScriptEnabled(true);
+		webView.setWebViewClient(webClient);
+		urlEditText = (EditText) findViewById(R.id.url_edittext);
+
+		urlButton = (ImageButton) findViewById(R.id.url_enter);
+		urlButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				onUrlEnterClick();
+			}
+		});
+
+		choosePhotoButton = (ImageButton) findViewById(R.id.photo_icon);
+		chooseUrlButton = (ImageButton) findViewById(R.id.url_icon);
+
+		cameraPreviewView = (RelativeLayout) findViewById(R.id.camera_preview_banch);
+		buttonsLayout = (RelativeLayout) findViewById(R.id.buttons_layout);
 		flushButton = (ImageButton) findViewById(R.id.change_flash_icon);
-		cameraPreviewView = (SurfaceView) findViewById(R.id.camera_preview);
+		cameraPreviewSurface = (SurfaceView) findViewById(R.id.camera_preview);
+
 		bounceLinearView = (LinearLayout) findViewById(R.id.created_bounce_view_layout);
 		bounceTopLinearView = (LinearLayout) findViewById(R.id.created_bounce_view_layout_top);
 		takenPicturesView = (HorizontalScrollView) findViewById(R.id.taken_pictures);
 		takenPicturesLinearLayout = (LinearLayout) findViewById(R.id.taken_pictures_linear_layout);
 		questionView = (EditText) findViewById(R.id.question);
-		cameraPreviewHolder = cameraPreviewView.getHolder();
+
+		cameraPreviewHolder = cameraPreviewSurface.getHolder();
 		flushButton.setVisibility(View.VISIBLE);
 		takePictureButton = (ImageButton) findViewById(R.id.take_picture_button);
 
@@ -148,11 +200,20 @@ public class BounceitActivity extends Activity implements
 		calculateSizes();
 	}
 
+	private void onUrlEnterClick() {
+		String url = urlEditText.getText().toString();
+		if (!url.startsWith("http://"))
+			url = "http://" + url;
+		webView.loadUrl(url);
+	}
+
 	private void setupBounceViews() {
 
 		receivers = new ArrayList<Integer>();
 		optionTitleViews = new ArrayList<EditText>();
 		optionImages = new ArrayList<byte[]>();
+		optionURLs = new ArrayList<String>();
+		optionTypes = new ArrayList<Integer>();
 		takenPicturesLinearLayout.removeAllViews();
 
 		if (bounce.getNumberOfOptions() != null)
@@ -165,10 +226,18 @@ public class BounceitActivity extends Activity implements
 
 		currentOption = 0;
 		ArrayList<BounceOption> contents = new ArrayList<BounceOption>();
-		if (bounce.getOptions() != null)
+		if (bounce.getOptions() != null) {
 			contents = bounce.getOptions();
-		for (int i = 0; i < optionNumber; i++) {
-			addOption(contents.get(i).getImage(), contents.get(i).getTitle());
+			for (int i = 0; i < optionNumber; i++) {
+
+				if (contents.get(i).getType() == Consts.CONTENT_TYPE_IMAGE) {
+					addOptionImage(contents.get(i).getImage(), contents.get(i)
+							.getTitle());
+				} else {
+					addOptionUrl(contents.get(i).getUrl(), contents.get(i)
+							.getTitle());
+				}
+			}
 		}
 	}
 
@@ -192,6 +261,7 @@ public class BounceitActivity extends Activity implements
 			Log.e(TAG, "no ID is provided");
 		}
 
+		onPhotoIconClick(new View(this));
 		isFlushOn = false;
 		draftNotify = true;
 
@@ -265,8 +335,9 @@ public class BounceitActivity extends Activity implements
 			option.setBounceID(bounce.getID());
 			option.setImage(optionImages.get(i));
 			option.setTitle(optionTitleViews.get(i).getText().toString());
+			option.setUrl(optionURLs.get(i));
 			option.setOptionNumber(i);
-			option.setType(Consts.CONTENT_TYPE_IMAGE);
+			option.setType(optionTypes.get(i));
 			bounce.addOption(option);
 		}
 
@@ -334,6 +405,36 @@ public class BounceitActivity extends Activity implements
 		return c;
 	}
 
+	public void onPhotoIconClick(View v) {
+		Log.d(TAG, "onPhotoIcon");
+		cameraPreviewView.setVisibility(View.VISIBLE);
+		cameraPreviewView.bringToFront();
+		URLView.setVisibility(View.INVISIBLE);
+		buttonsLayout.bringToFront();
+		chooseUrlButton.setSelected(false);
+		choosePhotoButton.setSelected(true);
+	}
+
+	public void onURLClick(View v) {
+		Log.d(TAG, "onUrlClick");
+		URLView.setVisibility(View.VISIBLE);
+		URLView.bringToFront();
+		cameraPreviewView.setVisibility(View.INVISIBLE);
+		buttonsLayout.bringToFront();
+		chooseUrlButton.setSelected(true);
+		choosePhotoButton.setSelected(false);
+	}
+
+	public void onPasteFromClipboardClick(View v) {
+		MyClipboardManager mng = new MyClipboardManager();
+		String text = mng.readFromClipboard(getApplicationContext());
+		urlEditText.setText(text);
+	}
+
+	public void onURLEnterClick(View v) {
+		Log.d(TAG, "onUrlEnterClick");
+	}
+
 	public void onSwapCameraClick(View v) {
 		if (inPreview) {
 			cameraConfigured = false;
@@ -372,9 +473,31 @@ public class BounceitActivity extends Activity implements
 		startPreview();
 	}
 
+	private void onAddUrl() {
+		String url = webView.getUrl();
+		String title = webView.getTitle();
+		addOptionUrl(url, title);
+	}
+
 	public void onTakePictureClick(View v) {
-		if (lastShownImage != null)
-			onPictureTaken(lastShownImage);
+
+		optionNumber++;
+		Log.d(TAG, "option number is " + optionNumber);
+
+		if (optionNumber >= 6) {
+			Toast.makeText(BounceitActivity.this,
+					"Sorry, no more than 5 options! ", Toast.LENGTH_LONG)
+					.show();
+			return;
+		}
+
+		if (URLView.getVisibility() == View.VISIBLE) {
+			onAddUrl();
+		} else {
+			if (lastShownImage != null) {
+				onPictureTaken(lastShownImage);
+			}
+		}
 	}
 
 	public void onBackButtonClick(View v) {
@@ -439,11 +562,60 @@ public class BounceitActivity extends Activity implements
 		setupBounceViews();
 	}
 
-	private void addOption(byte[] imageData, String textOption) {
+	private void addOptionUrl(String url, String textTitle) {
 		LayoutInflater inflater = (LayoutInflater) this
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View optionView = inflater.inflate(
-				R.layout.bounce_option_view_layout_small, null);
+				R.layout.bounce_option_view_layout_url, null);
+		EditText optionText = (EditText) optionView
+				.findViewById(R.id.option_text);
+		optionText.setText(textTitle);
+
+		WebView optionWebview = (WebView) optionView
+				.findViewById(R.id.option_webview);
+		Utils.setupWebView(optionWebview);
+		optionWebview.setWebViewClient(new WebViewClient());
+		optionWebview.loadUrl(url);
+
+		ImageButton deleteButton = (ImageButton) optionView
+				.findViewById(R.id.option_delete_button);
+		deleteButton.setTag(currentOption);
+		currentOption++;
+		deleteButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				int optionNumber = (Integer) v.getTag();
+				deleteOptionPressed(optionNumber);
+			}
+		});
+
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+				imgHeight, imgHeight);
+		optionView.setLayoutParams(params);
+		takenPicturesLinearLayout.addView(optionView);
+		Handler handler = new Handler();
+		handler.postDelayed(new Runnable() {
+			public void run() {
+				takenPicturesView.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+			}
+		}, 100L);
+
+		optionTitleViews.add(optionText);
+		optionImages.add(null);
+		optionURLs.add(url);
+		optionTypes.add(Consts.CONTENT_TYPE_URL);
+	}
+
+	private void addOptionImage(byte[] imageData, String textOption) {
+
+		Log.d(TAG, "image data is " + imageData);
+
+		LayoutInflater inflater = (LayoutInflater) this
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View optionView = inflater.inflate(
+				R.layout.bounce_option_view_layout_image, null);
 		EditText optionText = (EditText) optionView
 				.findViewById(R.id.option_text);
 		optionText.setText(textOption);
@@ -479,6 +651,8 @@ public class BounceitActivity extends Activity implements
 
 		optionTitleViews.add(optionText);
 		optionImages.add(imageData);
+		optionURLs.add(null);
+		optionTypes.add(Consts.CONTENT_TYPE_IMAGE);
 	}
 
 	private byte[] saveImage(byte[] pictureData) {
@@ -515,17 +689,8 @@ public class BounceitActivity extends Activity implements
 	}
 
 	public void onPictureTaken(byte[] pictureData) {
-		optionNumber++;
-		Log.d(TAG, "option number is " + optionNumber);
-
-		if (optionNumber >= 6) {
-			Toast.makeText(BounceitActivity.this,
-					"Sorry, no more than 5 options! ", Toast.LENGTH_LONG)
-					.show();
-		} else {
-			byte[] imageData = saveImage(pictureData);
-			addOption(imageData, optionNumber + ")");
-		}
+		byte[] imageData = saveImage(pictureData);
+		addOptionImage(imageData, optionNumber + ")");
 		startPreview();
 	}
 

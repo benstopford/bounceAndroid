@@ -109,6 +109,10 @@ public class DataHolder {
 		}
 	}
 
+	public ArrayList<Bounce> getAllDrafts() {
+		return databaseHandler.getallDrafts();
+	}
+
 	public ArrayList<Bounce> getBounces() {
 		return databaseHandler.getAllBounces();
 	}
@@ -189,7 +193,11 @@ public class DataHolder {
 		for (int i = 0; i < numberOfOptions; i++) {
 			BounceOption option = new BounceOption();
 			option.setTitle(optionTitles.get(i));
-			option.setImage(Base64.decode(contents.get(i), Base64.NO_WRAP));
+			if (types.get(i) == Consts.CONTENT_TYPE_IMAGE) {
+				option.setImage(Base64.decode(contents.get(i), Base64.NO_WRAP));
+			} else if (types.get(i) == Consts.CONTENT_TYPE_URL) {
+				option.setUrl(contents.get(i));
+			}
 			option.setOptionNumber(i);
 			option.setType(types.get(i));
 			bounce.addOption(option);
@@ -470,7 +478,7 @@ public class DataHolder {
 		notifyBouncesChanged();
 	}
 
-	public void removeBounceWithInternalID(Integer ID) {
+	public void removeBounceWithInternalID(long ID) {
 		databaseHandler.deleteBounceWithID(ID);
 		notifyBouncesChanged();
 	}

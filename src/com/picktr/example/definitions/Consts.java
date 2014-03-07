@@ -9,6 +9,7 @@ public interface Consts {
 	public static final float LIKE_BUTTON_OPACITY = (float) (0.2 * 250.0);
 
 	public static final int CONTENT_TYPE_IMAGE = 0;
+	public static final int CONTENT_TYPE_URL = 1;
 
 	public static final String BOUNCES_CLASS_NAME = "Bounces";
 

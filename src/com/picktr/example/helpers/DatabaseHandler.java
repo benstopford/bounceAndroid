@@ -13,13 +13,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.picktr.example.definitions.Consts;
+
 public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	private static final String TAG = "DatabaseHandler";
 
 	// Database Version
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 6;
 
 	// Database Name
 	private static final String DATABASE_NAME = "databaseManager";
@@ -79,6 +81,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final String OPTION_TYPE = "option_type";
 	private static final String OPTION_IMAGE = "option_image";
 	private static final String OPTION_TITLE = "option_title";
+	private static final String OPTION_URL = "option_url";
 
 	private static final String LIKES_KEY_ID = "id";
 	private static final String LIKES_KEY_BOUNCE_ID = "bounce_id";
@@ -127,7 +130,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ OPTION_KEY_ID + " INTEGER PRIMARY KEY," + OPTION_BOUNCE_DB_ID
 				+ " INTEGER," + OPTION_OPTION_NUMBER + " INTEGER,"
 				+ OPTION_TYPE + " INTEGER," + OPTION_TITLE + " TEXT,"
-				+ OPTION_IMAGE + " BLOB" + ")";
+				+ OPTION_IMAGE + " BLOB," + OPTION_URL + " TEXT" + ")";
 		db.execSQL(CREATE_OPTIONS_TABLE);
 
 		String CREATE_SEEN_TABLE = "CREATE TABLE " + TABLE_SEEN + "("
@@ -355,14 +358,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		// db.close();
 	}
 
-	long addOption(BounceOption optionImage) {
+	long addOption(BounceOption option) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues values = new ContentValues();
-		values.put(OPTION_BOUNCE_DB_ID, optionImage.getBounceID());
-		values.put(OPTION_OPTION_NUMBER, optionImage.getOptionNumber());
-		values.put(OPTION_TYPE, optionImage.getType());
-		values.put(OPTION_TITLE, optionImage.getTitle());
-		values.put(OPTION_IMAGE, optionImage.getImage());
+		values.put(OPTION_BOUNCE_DB_ID, option.getBounceID());
+		values.put(OPTION_OPTION_NUMBER, option.getOptionNumber());
+		values.put(OPTION_TYPE, option.getType());
+		values.put(OPTION_TITLE, option.getTitle());
+		values.put(OPTION_IMAGE, option.getImage());
+		values.put(OPTION_URL, option.getUrl());
 		long res = db.insert(TABLE_OPTIONS, null, values);
 		return res;
 	}
@@ -371,7 +375,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor cursor = db.query(TABLE_OPTIONS, new String[] { OPTION_KEY_ID,
 				OPTION_BOUNCE_DB_ID, OPTION_OPTION_NUMBER, OPTION_TYPE,
-				OPTION_TITLE, OPTION_IMAGE }, OPTION_KEY_ID + "=?",
+				OPTION_TITLE, OPTION_IMAGE, OPTION_URL }, OPTION_KEY_ID + "=?",
 				new String[] { String.valueOf(id) }, null, null, null, null);
 		if (cursor == null)
 			return null;
@@ -381,7 +385,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		BounceOption optionImage = new BounceOption(cursor.getLong(0),
 				cursor.getLong(1), cursor.getInt(2), cursor.getInt(3),
-				cursor.getString(4), cursor.getBlob(5));
+				cursor.getString(4), cursor.getBlob(5), cursor.getString(6));
 		cursor.close();
 		return optionImage;
 	}
@@ -405,7 +409,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			do {
 				BounceOption optionImage = new BounceOption(cursor.getLong(0),
 						cursor.getLong(1), cursor.getInt(2), cursor.getInt(3),
-						cursor.getString(4), cursor.getBlob(5));
+						cursor.getString(4), cursor.getBlob(5),
+						cursor.getString(6));
 				res.add(optionImage);
 			} while (cursor.moveToNext());
 		}
@@ -498,6 +503,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return bounce;
 	}
 
+	public ArrayList<Bounce> getallDrafts() {
+		ArrayList<Bounce> bounceList = new ArrayList<Bounce>();
+		String selectQuery = "SELECT  * FROM " + TABLE_BOUNCES + " WHERE "
+				+ BOUNCES_KEY_STATUS + " = " + "\""
+				+ Consts.BOUNCE_STATUS_DRAFT + "\"" + " ORDER BY "
+				+ BOUNCES_KEY_SEND_AT + " DESC";
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		if (cursor.moveToFirst()) {
+			do {
+				Bounce bounce = bounceFromCursor(cursor);
+				bounceList.add(bounce);
+			} while (cursor.moveToNext());
+		}
+
+		cursor.close();
+		return bounceList;
+	}
+
 	public ArrayList<Bounce> getAllBounces() {
 		ArrayList<Bounce> bounceList = new ArrayList<Bounce>();
 		String selectQuery = "SELECT  * FROM " + TABLE_BOUNCES + " ORDER BY "
@@ -531,7 +555,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				new String[] { String.valueOf(bounce.getID()) });
 	}
 
-	public void deleteBounceWithID(Integer id) {
+	public void deleteBounceWithID(long id) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_BOUNCES, BOUNCES_KEY_ID + " = ?",
 				new String[] { String.valueOf(id) });

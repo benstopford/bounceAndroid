@@ -37,9 +37,11 @@
                 android:layout_weight="1"
                 android:background="@drawable/edittext"
                 android:gravity="center"
-                android:hint="question"
+                android:hint="What&apos;s up?"
                 android:lines="2"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:textColor="#404040"
+                android:textColorHint="#bfbfbf" />
 
             <Button
                 android:id="@+id/bounceit_button"
@@ -64,42 +66,124 @@
         </HorizontalScrollView>
     </LinearLayout>
 
-    <SurfaceView
-        android:id="@+id/camera_preview"
+    <RelativeLayout
+        android:id="@+id/camera_preview_banch"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/created_bounce_view_layout" />
+        android:layout_below="@id/created_bounce_view_layout" >
 
-    <ImageButton
-        android:id="@+id/change_flash_icon"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignTop="@id/camera_preview"
-        android:background="@android:color/transparent"
-        android:onClick="onFlushClick"
-        android:scaleType="fitXY"
-        android:src="@drawable/flash_on_icon" />
+        <SurfaceView
+            android:id="@+id/camera_preview"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
 
-    <ImageButton
-        android:id="@+id/change_back_and_front_icon"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@id/camera_preview"
-        android:background="@android:color/transparent"
-        android:onClick="onSwapCameraClick"
-        android:scaleType="fitXY"
-        android:src="@drawable/swap_camera_icon" />
+        <ImageButton
+            android:id="@+id/change_flash_icon"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignTop="@id/camera_preview"
+            android:background="@android:color/transparent"
+            android:onClick="onFlushClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/flash_icon" />
 
-    <ImageButton
-        android:id="@+id/take_picture_button"
-        android:layout_width="wrap_content"
+        <ImageButton
+            android:id="@+id/change_back_and_front_icon"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@id/camera_preview"
+            android:background="@android:color/transparent"
+            android:onClick="onSwapCameraClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/swap_camera_icon" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/url_preview_banch"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:background="@android:color/transparent"
-        android:onClick="onTakePictureClick"
-        android:src="@drawable/take_picture_icon" />
+        android:layout_below="@id/created_bounce_view_layout"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal" >
+
+            <ImageButton
+                android:id="@+id/url_paste_from_clipboard"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:onClick="onPasteFromClipboardClick"
+                android:scaleType="fitXY"
+                android:src="@drawable/paste_from_clip" />
+
+            <EditText
+                android:id="@+id/url_edittext"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:singleLine="true" />
+
+            <ImageButton
+                android:id="@+id/url_enter"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:onClick="onURLEnterClick"
+                android:src="@drawable/key_enter" />
+        </LinearLayout>
+
+        <WebView
+            android:id="@+id/url_webview"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:longClickable="false" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/buttons_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/created_bounce_view_layout" >
+
+        <ImageButton
+            android:id="@+id/photo_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:onClick="onPhotoIconClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/camera_icon" />
+
+        <ImageButton
+            android:id="@+id/url_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/photo_icon"
+            android:background="@android:color/transparent"
+            android:onClick="onURLClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/url_icon" />
+
+        <ImageButton
+            android:id="@+id/take_picture_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="@android:color/transparent"
+            android:onClick="onTakePictureClick"
+            android:src="@drawable/take_picture_icon" />
+    </RelativeLayout>
 
 </RelativeLayout>

@@ -160,7 +160,5 @@ public class BounceCloudActivity extends FragmentActivity implements
 
 	@Override
 	public void onPageSelected(int arg0) {
-		// TODO Auto-generated method stub
-
 	}
 }

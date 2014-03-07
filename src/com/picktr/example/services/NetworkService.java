@@ -473,8 +473,13 @@ public class NetworkService extends Service {
 		ArrayList<Integer> types = new ArrayList<Integer>();
 		for (int i = 0; i < options.size(); i++) {
 			titles.add(options.get(i).getTitle());
-			contents.add(Base64.encodeToString(options.get(i).getImage(),
-					Base64.NO_WRAP));
+
+			if (options.get(i).getType() == Consts.CONTENT_TYPE_IMAGE) {
+				contents.add(Base64.encodeToString(options.get(i).getImage(),
+						Base64.NO_WRAP));
+			} else if (options.get(i).getType() == Consts.CONTENT_TYPE_URL) {
+				contents.add(options.get(i).getUrl());
+			}
 			types.add(options.get(i).getType());
 		}
 
